@@ -6,13 +6,13 @@
 
 </head>
 <body>
-    <a href="/usuariomotorista/novo">
+    <a href="/usuariopassageiro/novo">
         Criar Novo Usuário Passageiro
     </a>
     <ul></ul>
     {% for usuariopassageiro in object_list %}
         <li>
-            {{ usuariopassageiro }} <a href="/usuariomotorista/editar"> Editar </a>
+            {{ usuariopassageiro }} <a href="/usuariopassageiro/editar"> Editar </a>
         </li>
     {% endfor %}
     </ul>

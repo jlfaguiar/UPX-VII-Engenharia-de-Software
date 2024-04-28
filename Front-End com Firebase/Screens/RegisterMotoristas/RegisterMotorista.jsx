@@ -54,6 +54,36 @@ export const RegisterMotorista = () => {
     }
   }
 
+  const handleCreateUser = async (uuid) => {
+    try {
+
+      console.log(nome)
+      if (uuid == undefined) {
+        return
+      }
+      const response = await axios.post(
+        "http://192.168.0.11:8000/api/usuariomotorista/novo/",
+        {
+            nome: String(nome),
+            telefone: String(telefone),
+            ra: parseInt(RA),
+            id_user: String(uuid),
+            cnh: parseInt(CNH)
+        },
+          // {
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //     'X-CSRFToken': csrfToken // Inclui o token CSRF no cabeçalho da requisição
+          //   }
+  
+          // }
+    );
+      console.log('Usuário criado com sucesso:', response);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+    }
+  };
+
   function criarUser() {
     if (checkAllFields() == 1) {
       return;
@@ -66,15 +96,18 @@ export const RegisterMotorista = () => {
     createUserWithEmailAndPassword(auth, email, senha)
       .then((userCredential) => {
         const user = userCredential.user;
+        handleCreateUser(uuid=user.uid);
         alert('Usuário cadastrado com sucesso!');
-        addDoc(collection(db, 'users_motoristas'), {
-          ra: RA,
-          email: email,
-          user_id: userCredential.user.uid,
-          nome: nome,
-          telefone: telefone,
-          cnh: CNH
-        })
+
+        // addDoc(collection(db, 'users_motoristas'), {
+        //   ra: RA,
+        //   email: email,
+        //   user_id: userCredential.user.uid,
+        //   nome: nome,
+        //   telefone: telefone,
+        //   cnh: CNH
+        // })
+
       })
       .catch((error) => {
         const errorCode = error.code;

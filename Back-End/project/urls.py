@@ -17,10 +17,13 @@ from django.contrib import admin
 from django.urls import path
 
 from api.views import NewUsuarioMotorista, EditUsuarioMotorista, ListUsuarioMotorista, DetailedUsuarioMotorista, \
-    RemoveUsuarioMotorista
+    RemoveUsuarioMotorista, NewUsuario
 
 from api.views import NewUsuarioPassageiro, ListUsuarioPassageiro, EditUsuarioPassageiro, DetailedUsuarioPassageiro, \
     RemoveUsuarioPassageiro
+
+from api.views import APINewUsuarioMotorista, APINewUsuarioPassageiro, APIListUsuarioPassageiro, \
+    APIRemoveUsuarioPassageiro
 
 
 urlpatterns = [
@@ -39,5 +42,11 @@ urlpatterns = [
          name='usuario-passageiro-detalhar'),
     path('usuariopassageiro/<int:pk>/apagar/', RemoveUsuarioPassageiro.as_view(), name='usuario-passageiro-apagar'),
 
+    path('usuario/novo/', NewUsuario.as_view(), name='usuario-novo'),
+
+    path('api/usuariopassageiro/novo/', APINewUsuarioPassageiro.as_view(), name='api-usuario-passageiro-novo'),
+    path('api/usuariopassageiro/lista/', APIListUsuarioPassageiro.as_view(), name='api-usuario-passageiro-listar'),
+    path('api/usuariopassageiro/<str:id_user>/apagar', APIRemoveUsuarioPassageiro.as_view(),
+         name='api-usuario-passageiro-apagar')
 ]
 

@@ -1,9 +1,11 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { View, Text, Image, StyleSheet, TextInput,  TouchableOpacity} from "react-native";
 import { auth } from "../../Services/firebaseConfig";
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from "../../Services/firebaseConfig";
+import axios, { Axios } from 'axios';
+
 
 export const Register = () => {
 
@@ -13,7 +15,55 @@ export const Register = () => {
   const [RA, setRA] = useState("");
   const [senha, setSenha] = useState("");
   const [confSenha, setConfSenha] = useState("");
+
+  const [csrfToken, setCsrfToken] = useState('');
   // Usar para autenticação posteriormente, cadastramento de usuários
+
+  useEffect(() => {
+    // Requisição GET para uma URL que exija CSRF (por exemplo, a página de login)
+    axios.get("http://192.168.0.11:8000/usuariopassageiro/novo/")
+      .then(response => {
+        // Extrair o token CSRF do cookie
+        console.log(response)
+        const csrfCookie = response.headers['set-cookie'][0];
+        const csrfToken = csrfCookie.split('=')[1].split(';')[0];
+        console.log(csrfToken);
+        setCsrfToken(csrfToken);
+      })
+      .catch(error => {
+        console.error('Erro ao obter token CSRF:', error);
+      });
+  }, []);
+
+  const handleCreateUser = async (uuid) => {
+    try {
+
+      console.log(nome)
+      if (uuid == undefined) {
+        return
+      }
+      const response = await axios.post(
+        "http://192.168.0.11:8000/api/usuariopassageiro/novo/",
+        {
+            nome: String(nome),
+            telefone: String(telefone),
+            ra: parseInt(RA),
+            id_user: String(uuid),
+            email: email
+        },
+          // {
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //     'X-CSRFToken': csrfToken // Inclui o token CSRF no cabeçalho da requisição
+          //   }
+  
+          // }
+    );
+      console.log('Usuário criado com sucesso:', response);
+    } catch (error) {
+      console.error('Erro ao criar usuário:', error);
+    }
+  };
 
   function checkPassword() {
     if (senha != confSenha) {
@@ -62,20 +112,19 @@ export const Register = () => {
     createUserWithEmailAndPassword(auth, email, senha)
       .then((userCredential) => {
         const user = userCredential.user;
+        handleCreateUser(uuid=user.uid);
         alert('Usuário cadastrado com sucesso!');
-        addDoc(collection(db, 'users_passageiros'), {
-          ra: RA,
-          email: email,
-          user_id: userCredential.user.uid,
-          nome: nome,
-          telefone: telefone
-        })
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
         alert('Um erro desconhecido ocorreu ao registrar o usuário!\nCódigo: ' + errorCode + '\nDescrição: ' + errorMessage)
       })
+    console.log('chamando')
+    handleCreateUser().catch((error) => {
+      console.log(error)
+    })
+    ;
   }
 
   return (
