@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+</head>
+<body>
+    <a href="/usuariomotorista/novo">
+        Criar Novo Usuário Passageiro
+    </a>
+    <ul></ul>
+    {% for usuariopassageiro in object_list %}
+        <li>
+            {{ usuariopassageiro }} <a href="/usuariomotorista/editar"> Editar </a>
+        </li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

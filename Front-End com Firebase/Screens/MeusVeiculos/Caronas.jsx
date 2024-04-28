@@ -24,6 +24,8 @@ export const Caronas = (props) => {
     const [addingHorarioEmbarqueVolta, setAddingHorarioEmbarqueVolta]  = useState(null);
     const [realAddingHorarioEmbarqueVolta, setRealAddingHorarioEmbarqueVolta]  = useState(null);
 
+    const [edittingCaronaId, setEdittingCaronaId] = useState('');
+
     const [embarqueIdaPickerVisible, setEmbarqueIdaPickerVisible] = useState(false);
     const [embarqueVoltaPickerVisible, setEmbarqueVoltaPickerVisible] = useState(false);
 
@@ -35,13 +37,31 @@ export const Caronas = (props) => {
 
     const [alreadyHaveGroup, setAlreadyHaveGroup] = useState(false);
 
+    const [associacoesCaronas, setAssociacoesCaronas] = useState(null);
+
+    const [caronasParticipantes, setCaronasParticipantes] = useState([]);
+    const [meusGrupos, setMeusGrupos] = useState({});
+
+    const [modoEdicao, setModoEdicao] = useState(false);
+
 
     // Instruções de inicialização
     useEffect(() => {
         getUserData();
         getMotoristasData();
-        getGruposDeCaronaData();
+        getAssociacoesCaronasData();
+        // getGruposDeCaronaData();
     }, [])
+
+    useEffect(() => {
+        console.log(associacoesCaronas);
+        getGruposDeCaronaData();
+    }, [associacoesCaronas])
+
+    useEffect(() => {
+        console.log(associacoesCaronas);
+        getGruposDeCaronaData();
+    }, [caronasParticipantes])
 
     useEffect(() => {
         console.log('Dados de usuário coletados')
@@ -140,8 +160,49 @@ export const Caronas = (props) => {
         }
     }
 
+    const getAssociacoesCaronasData = async() => {
+        newAssociacoesCaronasData = {}
+        newCaronasParticipantes = []
+
+        try {
+            console.log('Coletando informações das associações de caronas...')
+
+            const collectionData = query(collection(db, 'associacoes_de_caronas'));
+
+            const snapshot = await getDocs(collectionData);
+
+            console.log(snapshot);
+
+            snapshot.forEach((doc) => {
+                if (!(doc.data().id_carona in newAssociacoesCaronasData)) {
+                    newAssociacoesCaronasData[doc.data().id_carona] = {
+                        'numero_de_passageiros': 0,
+                        'ids_passageiros': []
+                    }
+
+                    if (auth.currentUser.uid == doc.data().id_passageiro) {
+                        newCaronasParticipantes.push({
+                            'id_associacao': doc.id,
+                            'id_carona': doc.data().id_carona
+                        })
+                    }
+                }
+                newAssociacoesCaronasData[doc.data().id_carona]['numero_de_passageiros'] += 1
+                newAssociacoesCaronasData[doc.data().id_carona]['ids_passageiros'].push(doc.data().id_passageiro)
+
+            })
+            setCaronasParticipantes(newCaronasParticipantes);
+            console.log(newCaronasParticipantes)
+            setAssociacoesCaronas(newAssociacoesCaronasData);
+
+        } catch (error) {
+            console.log('Erro ao coletar informações das associações de caronas')
+        }
+    }
+
     const getGruposDeCaronaData = async() => {
         const newCaronaData = []
+        const newMeusGrupos = {}
 
         try {
             console.log('Coletando dados das caronas...')
@@ -150,7 +211,8 @@ export const Caronas = (props) => {
             const snapshot = await getDocs(collectionData);
 
             snapshot.forEach((doc) => {
-                newCaronaData.push({
+
+                gp_carona = {
                     id: doc.id,
                     horario_embarque_ida: doc.data().horario_embarque_ida,
                     horario_embarque_volta: doc.data().horario_embarque_volta,
@@ -161,11 +223,30 @@ export const Caronas = (props) => {
                     id_motorista: doc.data().id_motorista,
                     localizacao: doc.data().localizacao,
                     localizacao_desembarque: doc.data().localizacao_desembarque,
-                    localizacao_embarque: doc.data().localizacao_embarque
-                })
+                    localizacao_embarque: doc.data().localizacao_embarque,
+                    total_passageiros: associacoesCaronas[String(doc.id)] ? associacoesCaronas[String(doc.id)]['numero_de_passageiros'] : 0,
+                    max_passageiros: 4,
+                }
+                
+                my_carona = caronasParticipantes.some(carona_elem => carona_elem['id_carona'] == doc.id)
+                if (my_carona) {
+                    newCaronaData.unshift(gp_carona)
+                } else {
+                    newCaronaData.push(gp_carona)
+                }
+
+                if (gp_carona.id_motorista == auth.currentUser.uid) {
+                    console.log('Grupo de carona de minha propriedade')
+                    newMeusGrupos[doc.id] = gp_carona
+                } else {
+                    console.log('Grupo de carona não é de minha propriedade')
+                }
+
             })
             setCaronas(newCaronaData);
+            setMeusGrupos(newMeusGrupos);
         } catch (error) {
+            console.log(error)
             console.log('Erro ao coletar informações dos grupos de carona')
         }
     }
@@ -194,6 +275,91 @@ export const Caronas = (props) => {
         }
     }
 
+    const entrarEmGrupoDeCarona = async(id_grupo) => {
+
+        grupo_obj = null;
+
+        for (let carona of caronas) {
+            if (String(carona.id) == id_grupo) {
+                grupo_obj = carona;
+                break;
+            }
+        }
+
+        if (grupo_obj == null) {
+            alert('Erro ao localizar informações do grupo de carona');
+            return;
+        } else if (grupo_obj.max_passageiros <= grupo_obj.total_passageiros) {
+            alert('Este grupo de caronas já está no limite!');
+            return;
+        }
+        
+        addDoc(collection(db, 'associacoes_de_caronas'), {
+            id_carona: grupo_obj.id,
+            id_passageiro: auth.currentUser.uid
+         }).then(() => {
+            alert('Sucesso ao entrar no grupo de carona!');
+            getAssociacoesCaronasData();
+         })
+    }
+
+    const sairDoGrupoDeCarona = async(id_grupo) => {
+        console.log('Este é o grupo que está querendo sair: ' + id_grupo);
+
+        associacao_del = null
+
+        for (let associacao of caronasParticipantes) {
+            if (associacao.id_carona == id_grupo) {
+                associacao_del = associacao;
+                break;
+            }
+        }
+
+        if (associacao_del == null) {
+            alert('Não foi encontrada associação de carona para ser deletada!');
+            return;
+        }
+
+        try {
+            const docRef = doc(db, 'associacoes_de_caronas', associacao_del.id_associacao)
+
+            getDoc(docRef).then((snapshot) => {
+                if (!snapshot.exists()) {
+                    alert('A associação de caronas solicitada não existe no banco de dados!');
+                } else {
+                    deleteDoc(docRef).then(() => {
+                        alert('Sucesso em sair da carona!');
+                        getAssociacoesCaronasData();
+                    })
+                }
+            })
+        } catch (error) {
+            console.log('Erro ao deletar associação em grupo de carona!');
+        }
+
+    }
+
+    const abrirEditorDeCarona = (grupo) => {
+        setAddingLocalizacaoEmbarque(grupo.localizacao_embarque);
+        setAddingLocalizacaoDesembarque(grupo.localizacao_desembarque);
+        setAddingHorarioEmbarqueVolta(grupo.string_horario_embarque_volta);
+        setAddingHorarioEmbarqueIda(grupo.string_horario_embarque_volta);
+        setRealAddingHorarioEmbarqueVolta(grupo.horario_embarque_volta);
+        setRealAddingHorarioEmbarqueIda(grupo.horario_embarque_ida);
+        setAddingValor(String(grupo.valor).replace('.', ','));
+        setEmbarqueVoltaPickerVisible(false);
+        setEmbarqueIdaPickerVisible(false);
+        setEdittingCaronaId(grupo.id)
+        setModoEdicao(true);
+        setMenuAddCarona(true);
+
+    }
+
+    const editarGrupoDeCarona = async() => {
+        console.log('vc quer editar entao kkkkkkkkkkkkkkkk')
+    }
+
+
     // Obtenção de dados do firebase
     const popAdd = () => {
         return (
@@ -201,13 +367,13 @@ export const Caronas = (props) => {
                 <View style={modalStyles.modalScreen}>
                     <View style={{ flex: 1 }} />
 
-                    <Text style={modalStyles.modalTitle}>Adicionar Grupo de Carona</Text>
+                    <Text style={modalStyles.modalTitle}>{modoEdicao ? 'Editar' : 'Adicionar'} Grupo de Carona</Text>
 
                     <View style={{ flex: 1 }} />
 
-                    <TextInput placeholder="Localização de Embarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoEmbarque} />
+                    <TextInput placeholder="Localização de Embarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoEmbarque} value={addingLocalizacaoEmbarque} />
 
-                    <TextInput placeholder="Localização de Desembarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoDesembarque} />
+                    <TextInput placeholder="Localização de Desembarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoDesembarque} value={addingLocalizacaoDesembarque}/>
 
                     <TextInput placeholder="Horário de Embarque (ida)" style={modalStyles.inputField}
                         //onTouchStart={() => { setEmbarqueIdaPickerVisible(true) }}
@@ -220,11 +386,11 @@ export const Caronas = (props) => {
                         // onFocus={() => { setEmbarqueVoltaPickerVisible(true) }}
                         value={addingHorarioEmbarqueVolta} />
 
-                    <TextInput placeholder="Valor" style={modalStyles.inputField} onChangeText={setAddingValor} />
+                    <TextInput placeholder="Valor" style={modalStyles.inputField} onChangeText={setAddingValor} value={addingValor}/>
 
                     <View style={{ flex: 1 }} />
 
-                    <TouchableOpacity style={modalStyles.addButton} onPress={createCarona}>
+                    <TouchableOpacity style={modalStyles.addButton} onPress={modoEdicao ? editarGrupoDeCarona : createCarona}>
                         <Text style={modalStyles.buttonTextAdd}>Confirmar</Text>
                     </TouchableOpacity>
 
@@ -342,7 +508,7 @@ export const Caronas = (props) => {
                 <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center'}}>
                     <Image  alt='driver_icon' source={require('./figs/driver_icon.png')} />
                 </View>
-                <View style={{ flex: 5 }}>
+                <View style={{ flex: 4 }}>
                     <Text style={{fontSize: 20, marginTop: 10, marginBottom: 10, color: '#5CC6BA'}}>
                         {motoristasData[carona.id_motorista]['nome']}
                     </Text>
@@ -352,14 +518,35 @@ export const Caronas = (props) => {
                     <Text>
                         Valor (R$): {carona.string_valor}
                     </Text>
-                    <Text style={{marginBottom: 15}}>
+                    <Text>
                         Telefone: {motoristasData[carona.id_motorista]['telefone']}
                     </Text>
+                    <Text style={{marginBottom: 15}}>
+                        {carona.total_passageiros}/{carona.max_passageiros} Passageiros
+                    </Text>
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, justifyContent: 'center' }}>
                     {/* <Text></Text>  futuramente será usado para abrir detalhes da carona*/}
-                </View>
 
+                    {
+                        item.id in meusGrupos ? 
+                        <Text style={GruposDeCaronasStyles.editButton} onPress={() =>
+                            abrirEditorDeCarona(item)}> 
+                            E
+                        </Text> 
+                        :
+                        (!caronasParticipantes.some(carona_elem => carona_elem['id_carona'] == item.id) ?
+                        <Text style={GruposDeCaronasStyles.enterButton} onPress={() =>
+                            entrarEmGrupoDeCarona(item.id)}> 
+                            +
+                        </Text> 
+                        :
+                        <Text style={GruposDeCaronasStyles.leaveButton} onPress={() =>
+                            sairDoGrupoDeCarona(item.id)}>
+                            X
+                            </Text>)
+                    }
+                </View>
             </View>
         ) 
     }
@@ -519,4 +706,39 @@ const modalStyles = StyleSheet.create({
         color: '#5CC6BA'
     }
 });
+
+const GruposDeCaronasStyles = StyleSheet.create({
+    enterButton: {
+        borderRadius: 50, 
+        backgroundColor: 'green',
+        height: 40,
+        width: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        alignContent: 'center'
+    },
+    leaveButton: {
+        borderRadius: 50, 
+        backgroundColor: 'red',
+        height: 40,
+        width: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        alignContent: 'center'
+    },
+    editButton: {
+        borderRadius: 50, 
+        backgroundColor: '#00d7fc',
+        height: 40,
+        width: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        alignContent: 'center'
+    }
+})
+
 // Estilizações
+
