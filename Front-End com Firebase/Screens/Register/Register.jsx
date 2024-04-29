@@ -5,6 +5,7 @@ import { auth } from "../../Services/firebaseConfig";
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from "../../Services/firebaseConfig";
 import axios, { Axios } from 'axios';
+import back_ip from "../../back_ip";
 
 
 export const Register = () => {
@@ -21,7 +22,7 @@ export const Register = () => {
 
   useEffect(() => {
     // Requisição GET para uma URL que exija CSRF (por exemplo, a página de login)
-    axios.get("http://192.168.0.11:8000/usuariopassageiro/novo/")
+    axios.get("http://" + back_ip + ":8000/usuariopassageiro/novo/")
       .then(response => {
         // Extrair o token CSRF do cookie
         console.log(response)
@@ -43,7 +44,7 @@ export const Register = () => {
         return
       }
       const response = await axios.post(
-        "http://192.168.0.11:8000/api/usuariopassageiro/novo/",
+        "http://" + back_ip + ":8000/api/usuariopassageiro/novo/",
         {
             nome: String(nome),
             telefone: String(telefone),

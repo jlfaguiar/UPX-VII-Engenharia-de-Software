@@ -7,8 +7,7 @@ import { db } from "../../Services/firebaseConfig";
 // import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from "axios";
-
-const windowHeight  = Dimensions.get('window').height;
+import back_ip from "../../back_ip";
 
 export const Caronas = (props) => {
 
@@ -204,7 +203,7 @@ export const Caronas = (props) => {
             console.log('Coletando dados das caronas...')
 
 
-            const carona_snapshot = await axios.get("http://192.168.0.11:8000/api/grupodecarona/" + String(auth.currentUser.uid) + "/lista")
+            const carona_snapshot = await axios.get("http://" + back_ip + ":8000/api/grupodecarona/" + String(auth.currentUser.uid) + "/lista")
             carona_snapshot.data.forEach((doc) => {
 
                 gp_carona = {
@@ -222,7 +221,8 @@ export const Caronas = (props) => {
                     max_passageiros: 4,
                     minha_carona: Boolean(doc.minha_carona),
                     nome_motorista: doc.nome_motorista,
-                    telefone_motorista: doc.telefone_motorista
+                    telefone_motorista: doc.telefone_motorista,
+                    carona_participante: doc.carona_participante
                 }
                 
                 if (gp_carona.minha_carona) {
@@ -502,7 +502,7 @@ export const Caronas = (props) => {
                             E
                         </Text> 
                         :
-                        (!caronasParticipantes.some(carona_elem => carona_elem['id_carona'] == item.id) ?
+                        (!item.carona_participante ?
                         <Text style={GruposDeCaronasStyles.enterButton} onPress={() =>
                             entrarEmGrupoDeCarona(item.id)}> 
                             +

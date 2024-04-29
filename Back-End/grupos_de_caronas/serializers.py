@@ -8,6 +8,7 @@ class GrupoDeCaronaSerializer(serializers.ModelSerializer):
 
     nome_motorista = serializers.SerializerMethodField()
     telefone_motorista = serializers.SerializerMethodField()
+    carona_participante = serializers.SerializerMethodField()
 
     class Meta:
         model = GrupoDeCarona
@@ -17,7 +18,13 @@ class GrupoDeCaronaSerializer(serializers.ModelSerializer):
 
         data = super().to_representation(instance)
 
-        data['minha_carona'] = data['id_motorista'] == str(instance)
+        id_usuario = self.context['request'].resolver_match.kwargs.get('id_usuario')
+
+        if 'id_motorista' in data.keys():
+            data['minha_carona'] = data['id_motorista'] == str(id_usuario)
+        else:
+            data['minha_carona'] = False
+
         data.pop('id_motorista', None)  # Remove o campo id_motorista
 
         return data
@@ -30,8 +37,22 @@ class GrupoDeCaronaSerializer(serializers.ModelSerializer):
         motorista = get_object_or_404(UsuarioMotorista, id_user=obj.id_motorista)
         return motorista.telefone
 
+    def get_carona_participante(self, obj):
+
+        id_usuario = self.context['request'].resolver_match.kwargs.get('id_usuario')
+        associacao = AssociacaoDeCarona.objects.filter(id_carona_id=obj.id, id_passageiro=id_usuario).exists()
+        return associacao
 class AssociacaoDeCaronaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AssociacaoDeCarona
         fields = '__all__'
+
+    def to_representation(self, instance):
+
+        data = super().to_representation(instance)
+
+        # data['minha_carona'] = data['id_motorista'] == str(instance)
+        data.pop('id_passageiro', None)  # Remove o campo id_motorista
+
+        return data

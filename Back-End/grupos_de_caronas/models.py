@@ -3,7 +3,7 @@ import django.urls as durls
 
 class GrupoDeCarona(models.Model):
 
-    id_motorista = models.CharField(max_length=28, unique=True)
+    id_motorista = models.CharField(max_length=28)
 
     localizacao = models.CharField(max_length=100, unique=False)
     localizacao_desembarque = models.CharField(max_length=150, unique=False)

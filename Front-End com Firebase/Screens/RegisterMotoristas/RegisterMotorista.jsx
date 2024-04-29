@@ -4,6 +4,7 @@ import { View, Text, Image, StyleSheet, TextInput,  TouchableOpacity} from "reac
 import { auth } from "../../Services/firebaseConfig";
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from "../../Services/firebaseConfig";
+import back_ip from '../../back_ip'
 
 export const RegisterMotorista = () => {
 
@@ -62,7 +63,7 @@ export const RegisterMotorista = () => {
         return
       }
       const response = await axios.post(
-        "http://192.168.0.11:8000/api/usuariomotorista/novo/",
+        "http://" + back_ip + ":8000/api/usuariomotorista/novo/",
         {
             nome: String(nome),
             telefone: String(telefone),

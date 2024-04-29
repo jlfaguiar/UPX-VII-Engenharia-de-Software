@@ -67,11 +67,11 @@ class APINewAssociacaoDeCarona(rfg.CreateAPIView):
     serializer_class = AssociacaoDeCaronaSerializer
     fields = '__all__'
 
-# class APIListAssociacaoDeCarona(rfg.ListAPIView):
-#
-#     model = AssociacaoDeCarona
-#     queryset = AssociacaoDeCarona.objects.all()
-#     serializer_class = AssociacaoDeCaronaSerializer
+class APIListAssociacaoDeCarona(rfg.ListAPIView):
+
+    model = AssociacaoDeCarona
+    queryset = AssociacaoDeCarona.objects.all()
+    serializer_class = AssociacaoDeCaronaSerializer
 
 # class APIDetailedGrupoDeCarona(rfg.RetrieveAPIView):
 #
