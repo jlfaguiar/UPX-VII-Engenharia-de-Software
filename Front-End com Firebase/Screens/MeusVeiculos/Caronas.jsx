@@ -35,33 +35,18 @@ export const Caronas = (props) => {
     const [caronas, setCaronas] = useState([]);
 
     const [alreadyHaveGroup, setAlreadyHaveGroup] = useState(false);
-
-    const [associacoesCaronas, setAssociacoesCaronas] = useState(null);
-
-    const [caronasParticipantes, setCaronasParticipantes] = useState([]);
-
+    
     const [modoEdicao, setModoEdicao] = useState(false);
 
 
     // Instruções de inicialização
     useEffect(() => {
         getUserData();
-        getAssociacoesCaronasData();
-        // getGruposDeCaronaData();
     }, [])
 
     useEffect(() => {
-        console.log(associacoesCaronas);
-        getGruposDeCaronaData();
-    }, [associacoesCaronas])
-
-    useEffect(() => {
-        console.log(associacoesCaronas);
-        getGruposDeCaronaData();
-    }, [caronasParticipantes])
-
-    useEffect(() => {
         console.log('Dados de usuário coletados')
+        getGruposDeCaronaData()
     }, [userData])
     // Instruções de inicialização
 
@@ -157,46 +142,6 @@ export const Caronas = (props) => {
         }
     }
 
-    const getAssociacoesCaronasData = async() => {
-        newAssociacoesCaronasData = {}
-        newCaronasParticipantes = []
-
-        try {
-            console.log('Coletando informações das associações de caronas...')
-
-            const collectionData = query(collection(db, 'associacoes_de_caronas'));
-
-            const snapshot = await getDocs(collectionData);
-
-            console.log(snapshot);
-
-            snapshot.forEach((doc) => {
-                if (!(doc.data().id_carona in newAssociacoesCaronasData)) {
-                    newAssociacoesCaronasData[doc.data().id_carona] = {
-                        'numero_de_passageiros': 0,
-                        'ids_passageiros': []
-                    }
-
-                    if (auth.currentUser.uid == doc.data().id_passageiro) {
-                        newCaronasParticipantes.push({
-                            'id_associacao': doc.id,
-                            'id_carona': doc.data().id_carona
-                        })
-                    }
-                }
-                newAssociacoesCaronasData[doc.data().id_carona]['numero_de_passageiros'] += 1
-                newAssociacoesCaronasData[doc.data().id_carona]['ids_passageiros'].push(doc.data().id_passageiro)
-
-            })
-            setCaronasParticipantes(newCaronasParticipantes);
-            console.log(newCaronasParticipantes)
-            setAssociacoesCaronas(newAssociacoesCaronasData);
-
-        } catch (error) {
-            console.log('Erro ao coletar informações das associações de caronas')
-        }
-    }
-
     const getGruposDeCaronaData = async() => {
         const newCaronaData = []
         try {
@@ -217,7 +162,7 @@ export const Caronas = (props) => {
                     localizacao: doc.localizacao,
                     localizacao_desembarque: doc.localizacao_desembarque,
                     localizacao_embarque: doc.localizacao_embarque,
-                    total_passageiros: associacoesCaronas[String(doc.id)] ? associacoesCaronas[String(doc.id)]['numero_de_passageiros'] : 0,
+                    total_passageiros: doc.total_passageiros,
                     max_passageiros: 4,
                     minha_carona: Boolean(doc.minha_carona),
                     nome_motorista: doc.nome_motorista,
@@ -266,7 +211,6 @@ export const Caronas = (props) => {
             id_passageiro: auth.currentUser.uid
          }).then(() => {
             alert('Sucesso ao entrar no grupo de carona!');
-            getAssociacoesCaronasData();
          })
     }
 
@@ -275,12 +219,12 @@ export const Caronas = (props) => {
 
         associacao_del = null
 
-        for (let associacao of caronasParticipantes) {
-            if (associacao.id_carona == id_grupo) {
-                associacao_del = associacao;
-                break;
-            }
-        }
+        // for (let associacao of caronasParticipantes) {
+        //     if (associacao.id_carona == id_grupo) {
+        //         associacao_del = associacao;
+        //         break;
+        //     }
+        // }
 
         if (associacao_del == null) {
             alert('Não foi encontrada associação de carona para ser deletada!');
@@ -296,7 +240,6 @@ export const Caronas = (props) => {
                 } else {
                     deleteDoc(docRef).then(() => {
                         alert('Sucesso em sair da carona!');
-                        getAssociacoesCaronasData();
                     })
                 }
             })
