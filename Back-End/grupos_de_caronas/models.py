@@ -5,9 +5,9 @@ class GrupoDeCarona(models.Model):
 
     id_motorista = models.CharField(max_length=28, unique=True)
 
-    localizacao = models.CharField(max_length=100, unique=True)
-    localizacao_desembarque = models.CharField(max_length=150, unique=True)
-    localizacao_embarque = models.CharField(max_length=150, unique=True)
+    localizacao = models.CharField(max_length=100, unique=False)
+    localizacao_desembarque = models.CharField(max_length=150, unique=False)
+    localizacao_embarque = models.CharField(max_length=150, unique=False)
 
     horario_embarque_ida = models.TimeField()
     horario_embarque_volta = models.TimeField()
@@ -23,12 +23,12 @@ class GrupoDeCarona(models.Model):
 
 class AssociacaoDeCarona(models.Model):
 
-    id_carona: models.ForeignKey(on_delete=models.CASCADE, to=GrupoDeCarona, null=None)
-    id_passageiro = models.CharField(max_length=28, unique=True)
+    id_carona = models.ForeignKey(on_delete=models.CASCADE, to=GrupoDeCarona, unique=False)
+    id_passageiro = models.CharField(max_length=28, unique=False)
 
     def __str__(self):
 
-        return 'Associação de Grupo de Caronas Genérico'
+        return str(self.id_carona)
 
     def get_absolute_url(self):
 

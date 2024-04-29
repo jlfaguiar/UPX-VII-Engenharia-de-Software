@@ -40,7 +40,6 @@ export const Caronas = (props) => {
     const [associacoesCaronas, setAssociacoesCaronas] = useState(null);
 
     const [caronasParticipantes, setCaronasParticipantes] = useState([]);
-    const [meusGrupos, setMeusGrupos] = useState({});
 
     const [modoEdicao, setModoEdicao] = useState(false);
 
@@ -201,8 +200,6 @@ export const Caronas = (props) => {
 
     const getGruposDeCaronaData = async() => {
         const newCaronaData = []
-        const newMeusGrupos = {}
-
         try {
             console.log('Coletando dados das caronas...')
 
@@ -223,24 +220,21 @@ export const Caronas = (props) => {
                     localizacao_embarque: doc.localizacao_embarque,
                     total_passageiros: associacoesCaronas[String(doc.id)] ? associacoesCaronas[String(doc.id)]['numero_de_passageiros'] : 0,
                     max_passageiros: 4,
-                    minha_carona: doc.minha_carona,
+                    minha_carona: Boolean(doc.minha_carona),
                     nome_motorista: doc.nome_motorista,
                     telefone_motorista: doc.telefone_motorista
                 }
                 
-                my_carona = gp_carona.minha_carona
-                if (my_carona) {
+                if (gp_carona.minha_carona) {
                     newCaronaData.unshift(gp_carona)
-                    newMeusGrupos[doc.id] = gp_carona
                 } else {
                     newCaronaData.push(gp_carona)
                 }
 
             })
 
-            console.log(newCaronaData)
+            console.log(newCaronaData);
             setCaronas(newCaronaData);
-            setMeusGrupos(newMeusGrupos);
         } catch (error) {
             console.log(error)
             console.log('Erro ao coletar informações dos grupos de carona')
@@ -502,7 +496,7 @@ export const Caronas = (props) => {
                     {/* <Text></Text>  futuramente será usado para abrir detalhes da carona*/}
 
                     {
-                        item.id in meusGrupos ? 
+                        item.minha_carona ? 
                         <Text style={GruposDeCaronasStyles.editButton} onPress={() =>
                             abrirEditorDeCarona(item)}> 
                             E

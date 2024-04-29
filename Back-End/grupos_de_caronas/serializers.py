@@ -30,7 +30,7 @@ class GrupoDeCaronaSerializer(serializers.ModelSerializer):
         motorista = get_object_or_404(UsuarioMotorista, id_user=obj.id_motorista)
         return motorista.telefone
 
-class UsuarioMotoristaSerializer(serializers.ModelSerializer):
+class AssociacaoDeCaronaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AssociacaoDeCarona

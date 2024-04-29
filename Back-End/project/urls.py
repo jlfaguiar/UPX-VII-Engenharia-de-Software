@@ -45,10 +45,19 @@ urlpatterns = [
          name='api-usuario-passageiro-apagar'),
 
     path('api/grupodecarona/novo', APINewGrupoDeCarona.as_view(), name='api-grupo-de-carona-novo'),
-    path('api/grupodecarona/<str:id_motorista>/lista/', APIListGrupoDeCarona.as_view(), name='api-grupo-de-carona-listar'),
+    path('api/grupodecarona/<str:id_motorista>/lista/', APIListGrupoDeCarona.as_view(),
+         name='api-grupo-de-carona-listar'),
     path('api/grupodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
          name='api-grupo-de-carona-editar'),
     path('api/grupodecarona/<str:id_user>/apagar', APIRemoveGrupoDeCarona.as_view(), name='api-grupo-de-carona-apagar'),
+
+    path('api/associacaodecarona/novo', APINewGrupoDeCarona.as_view(), name='api-associacao-de-carona-novo'),
+    # path('api/associacaodecarona/<str:id_motorista>/lista/', APIListGrupoDeCarona.as_view(),
+    #      name='api-grupo-de-carona-listar'),
+    # path('api/associacaodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
+    #      name='api-grupo-de-carona-editar'),
+    path('api/associacaodecarona/<str:id_passageiro>/<int:fk>/apagar', APIRemoveGrupoDeCarona.as_view(),
+         name='api-associacao-de-carona-apagar'),
 
 ]
 
