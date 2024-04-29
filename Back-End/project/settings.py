@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
+    'grupos_de_caronas',
     'corsheaders',
     'rest_framework'
 ]

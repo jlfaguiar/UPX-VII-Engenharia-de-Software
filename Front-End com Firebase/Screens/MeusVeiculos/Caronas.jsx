@@ -6,6 +6,7 @@ import { getDocs, query, collection, where, doc, deleteDoc, getDoc, addDoc, upda
 import { db } from "../../Services/firebaseConfig";
 // import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import axios from "axios";
 
 const windowHeight  = Dimensions.get('window').height;
 
@@ -32,7 +33,6 @@ export const Caronas = (props) => {
     const [userData, setUserData] = useState({});
     const [userMotorista, setUserMotorista] = useState(false);
 
-    const [motoristasData, setMotoristasData] = useState({})
     const [caronas, setCaronas] = useState([]);
 
     const [alreadyHaveGroup, setAlreadyHaveGroup] = useState(false);
@@ -48,7 +48,6 @@ export const Caronas = (props) => {
     // Instruções de inicialização
     useEffect(() => {
         getUserData();
-        getMotoristasData();
         getAssociacoesCaronasData();
         // getGruposDeCaronaData();
     }, [])
@@ -206,43 +205,40 @@ export const Caronas = (props) => {
 
         try {
             console.log('Coletando dados das caronas...')
-            const collectionData = query(collection(db, 'grupos_de_carona')); 
 
-            const snapshot = await getDocs(collectionData);
 
-            snapshot.forEach((doc) => {
+            const carona_snapshot = await axios.get("http://192.168.0.11:8000/api/grupodecarona/" + String(auth.currentUser.uid) + "/lista")
+            carona_snapshot.data.forEach((doc) => {
 
                 gp_carona = {
                     id: doc.id,
-                    horario_embarque_ida: doc.data().horario_embarque_ida,
-                    horario_embarque_volta: doc.data().horario_embarque_volta,
-                    string_horario_embarque_ida: timeStampToStringHourMinute(doc.data().horario_embarque_ida),
-                    string_horario_embarque_volta: timeStampToStringHourMinute(doc.data().horario_embarque_volta),
-                    valor: doc.data().valor,
-                    string_valor: valueToMoneyString(doc.data().valor),
-                    id_motorista: doc.data().id_motorista,
-                    localizacao: doc.data().localizacao,
-                    localizacao_desembarque: doc.data().localizacao_desembarque,
-                    localizacao_embarque: doc.data().localizacao_embarque,
+                    horario_embarque_ida: doc.horario_embarque_ida,
+                    horario_embarque_volta: doc.horario_embarque_volta,
+                    string_horario_embarque_ida: doc.horario_embarque_ida,
+                    string_horario_embarque_volta: doc.horario_embarque_volta,
+                    valor: doc.valor,
+                    string_valor: valueToMoneyString(doc.valor),
+                    localizacao: doc.localizacao,
+                    localizacao_desembarque: doc.localizacao_desembarque,
+                    localizacao_embarque: doc.localizacao_embarque,
                     total_passageiros: associacoesCaronas[String(doc.id)] ? associacoesCaronas[String(doc.id)]['numero_de_passageiros'] : 0,
                     max_passageiros: 4,
+                    minha_carona: doc.minha_carona,
+                    nome_motorista: doc.nome_motorista,
+                    telefone_motorista: doc.telefone_motorista
                 }
                 
-                my_carona = caronasParticipantes.some(carona_elem => carona_elem['id_carona'] == doc.id)
+                my_carona = gp_carona.minha_carona
                 if (my_carona) {
                     newCaronaData.unshift(gp_carona)
+                    newMeusGrupos[doc.id] = gp_carona
                 } else {
                     newCaronaData.push(gp_carona)
                 }
 
-                if (gp_carona.id_motorista == auth.currentUser.uid) {
-                    console.log('Grupo de carona de minha propriedade')
-                    newMeusGrupos[doc.id] = gp_carona
-                } else {
-                    console.log('Grupo de carona não é de minha propriedade')
-                }
-
             })
+
+            console.log(newCaronaData)
             setCaronas(newCaronaData);
             setMeusGrupos(newMeusGrupos);
         } catch (error) {
@@ -251,29 +247,6 @@ export const Caronas = (props) => {
         }
     }
 
-    const getMotoristasData = async () => {
-        newMotoristasData = {}
-
-        try {
-            console.log('Coletando informações dos motoristas...')
-
-            const collectionData = query(collection(db, 'users_motoristas'));
-
-            const snapshot = await getDocs(collectionData);
-
-            snapshot.forEach((doc) => {
-                newMotoristasData[String(doc.data().user_id)] = {
-                    'nome': doc.data().nome,
-                    'telefone': doc.data().telefone
-                }
-            })
-
-            setMotoristasData(newMotoristasData);
-
-        } catch (error) {
-            console.log('Erro ao coletar informações dos motoristas')
-        }
-    }
 
     const entrarEmGrupoDeCarona = async(id_grupo) => {
 
@@ -510,7 +483,7 @@ export const Caronas = (props) => {
                 </View>
                 <View style={{ flex: 4 }}>
                     <Text style={{fontSize: 20, marginTop: 10, marginBottom: 10, color: '#5CC6BA'}}>
-                        {motoristasData[carona.id_motorista]['nome']}
+                        {carona.nome_motorista}
                     </Text>
                     <Text>
                         Ida: {carona.string_horario_embarque_ida} / Volta: {carona.string_horario_embarque_volta}
@@ -519,7 +492,7 @@ export const Caronas = (props) => {
                         Valor (R$): {carona.string_valor}
                     </Text>
                     <Text>
-                        Telefone: {motoristasData[carona.id_motorista]['telefone']}
+                        Telefone: {carona.telefone_motorista}
                     </Text>
                     <Text style={{marginBottom: 15}}>
                         {carona.total_passageiros}/{carona.max_passageiros} Passageiros

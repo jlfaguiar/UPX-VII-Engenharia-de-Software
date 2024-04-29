@@ -1,8 +1,6 @@
 import django.urls
 from django.db import models
 
-from django.conf import settings
-
 import django.urls as durls
 
 # Create your models here.

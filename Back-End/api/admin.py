@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from api.models import UsuarioMotorista, UsuarioPassageiro
+from api.models import *
 
 admin.site.register(UsuarioMotorista)
 admin.site.register(UsuarioPassageiro)

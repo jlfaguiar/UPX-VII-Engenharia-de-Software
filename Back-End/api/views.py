@@ -2,13 +2,12 @@ import json
 
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from rest_framework.response import Response
 
 from api.models import UsuarioMotorista, UsuarioPassageiro
 import django.urls as durls
 
-import rest_framework.views as rfv
 import rest_framework.generics as rfg
 
 from api.serializers import UsuarioPassageiroSerializer, UsuarioMotoristaSerializer
@@ -155,9 +154,33 @@ class APIListUsuarioPassageiro(rfg.ListAPIView):
 class APIDetailedUsuarioPassageiro(rfg.RetrieveAPIView):
 
     model = UsuarioPassageiro
+    serializer_class = UsuarioPassageiroSerializer
 
+class APIEditUsuarioPassageiro(rfg.UpdateAPIView):
+    queryset = UsuarioPassageiro.objects.all()
+    serializer_class = UsuarioPassageiroSerializer
+    lookup_field = 'id_user'
+    http_method_names = ['put', 'patch']
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        data = request.data.copy()  # Copying data to prevent modifying original data
+
+        # Remove 'id_user' field from data if present to prevent editing it
+        if 'id_user' in data:
+            del data['id_user']
+
+        data['id_user'] = kwargs.get('id_user')
+
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer, )
+
+        return Response(serializer.data)
 
 class APIRemoveUsuarioPassageiro(rfg.DestroyAPIView):
+
     queryset = UsuarioPassageiro.objects.all()
 
     model = UsuarioPassageiro
