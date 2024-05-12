@@ -57,7 +57,7 @@ urlpatterns = [
          name='api-grupo-de-carona-listar'),
     # path('api/associacaodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
     #      name='api-grupo-de-carona-editar'),
-    path('api/associacaodecarona/apagar', APIRemoveAssociacaoDeCarona.as_view(),
+    path('api/associacaodecarona/<str:id_passageiro>/<int:id_carona>/apagar', APIRemoveAssociacaoDeCarona.as_view(),
          name='api-associacao-de-carona-apagar'),
 
 ]

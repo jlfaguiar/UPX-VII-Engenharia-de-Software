@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.response import Response
-
+from django.http import Http404
 from grupos_de_caronas.serializers import *
 import rest_framework.urls as ruls
 import rest_framework.generics as rfg
@@ -102,24 +102,20 @@ class APIListAssociacaoDeCarona(rfg.ListAPIView):
 #         return Response(serializer.data)
 
 class APIRemoveAssociacaoDeCarona(rfg.DestroyAPIView):
-
     model = AssociacaoDeCarona
     queryset = AssociacaoDeCarona.objects.all()
     serializer_class = AssociacaoDeCaronaSerializer
 
-    def delete(self, request, *args, **kwargs):
-        # Recebe os dados do JSON
-        id_passageiro = request.data.get('id_passageiro')
-        id_carona = request.data.get('id_carona')
-
-        # Verifica se os IDs foram fornecidos
-        if id_passageiro is None or id_carona is None:
-            return Response({"mensagem": "id_passageiro e id_carona são campos obrigatórios"}, status=400)
+    def get_object(self):
+        id_passageiro = self.kwargs.get('id_passageiro')
+        id_carona = self.kwargs.get('id_carona')
 
         try:
-            # Tenta encontrar e excluir a associação de carona
-            associacao = AssociacaoDeCarona.objects.get(id_passageiro=id_passageiro, id_carona=id_carona)
-            associacao.delete()
-            return Response({"mensagem": "Associação de carona removida com sucesso"}, status=200)
+            return self.queryset.get(id_passageiro=id_passageiro, id_carona=id_carona)
         except AssociacaoDeCarona.DoesNotExist:
-            return Response({"mensagem": "Associação de carona não encontrada"}, status=404)
+            raise Http404
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=204)

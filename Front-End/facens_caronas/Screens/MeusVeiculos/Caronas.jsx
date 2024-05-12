@@ -228,35 +228,17 @@ export const Caronas = (props) => {
     }
 
     const sairDoGrupoDeCarona = async(id_grupo) => {
-        console.log('Este é o grupo que está querendo sair: ' + id_grupo);
 
-        associacao_del = null
-
-        // for (let associacao of caronasParticipantes) {
-        //     if (associacao.id_carona == id_grupo) {
-        //         associacao_del = associacao;
-        //         break;
-        //     }
-        // }
-
-        if (associacao_del == null) {
-            alert('Não foi encontrada associação de carona para ser deletada!');
-            return;
-        }
+        const del_url = "http://" + back_ip + ":8000/api/associacaodecarona/" + String(auth.currentUser.uid) + "/" + String(id_grupo) + "/apagar"
 
         try {
-            const docRef = doc(db, 'associacoes_de_caronas', associacao_del.id_associacao)
-
-            getDoc(docRef).then((snapshot) => {
-                if (!snapshot.exists()) {
-                    alert('A associação de caronas solicitada não existe no banco de dados!');
-                } else {
-                    deleteDoc(docRef).then(() => {
-                        alert('Sucesso em sair da carona!');
-                    })
-                }
-            })
+            const delete_response = await axios.delete(del_url).then(() => {
+            alert('Sucesso ao sair do grupo de carona!');
+            getGruposDeCaronaData()
+        })
+           
         } catch (error) {
+            console.log(error)
             console.log('Erro ao deletar associação em grupo de carona!');
         }
 
