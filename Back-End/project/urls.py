@@ -51,12 +51,13 @@ urlpatterns = [
          name='api-grupo-de-carona-editar'),
     path('api/grupodecarona/<str:id_user>/apagar', APIRemoveGrupoDeCarona.as_view(), name='api-grupo-de-carona-apagar'),
 
-    path('api/associacaodecarona/novo', APINewAssociacaoDeCarona.as_view(), name='api-associacao-de-carona-novo'),
+    path('api/associacaodecarona/novo', APINewAssociacaoDeCarona.as_view(),
+         name='api-associacao-de-carona-novo'),
     path('api/associacaodecarona/lista/', APIListAssociacaoDeCarona.as_view(),
          name='api-grupo-de-carona-listar'),
     # path('api/associacaodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
     #      name='api-grupo-de-carona-editar'),
-    path('api/associacaodecarona/<str:id_passageiro>/<int:fk>/apagar', APIRemoveGrupoDeCarona.as_view(),
+    path('api/associacaodecarona/apagar', APIRemoveAssociacaoDeCarona.as_view(),
          name='api-associacao-de-carona-apagar'),
 
 ]

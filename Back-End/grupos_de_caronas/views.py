@@ -62,10 +62,10 @@ class APIRemoveGrupoDeCarona(rfg.DestroyAPIView):
         return JsonResponse({'message': 'Grupo de Carona removido com sucesso!.'}, status=204)
 
 class APINewAssociacaoDeCarona(rfg.CreateAPIView):
-
-    model = AssociacaoDeCarona
+    queryset = AssociacaoDeCarona.objects.all()
     serializer_class = AssociacaoDeCaronaSerializer
-    fields = '__all__'
+    model = AssociacaoDeCarona
+
 
 class APIListAssociacaoDeCarona(rfg.ListAPIView):
 
@@ -101,16 +101,25 @@ class APIListAssociacaoDeCarona(rfg.ListAPIView):
 #
 #         return Response(serializer.data)
 
-class APIRemoveGrupoDeCarona(rfg.DestroyAPIView):
+class APIRemoveAssociacaoDeCarona(rfg.DestroyAPIView):
 
-    queryset = GrupoDeCarona.objects.all()
+    model = AssociacaoDeCarona
+    queryset = AssociacaoDeCarona.objects.all()
+    serializer_class = AssociacaoDeCaronaSerializer
 
-    model = GrupoDeCarona
-    lookup_field = 'id_motorista'
-    success_url = durls.reverse_lazy('api-grupo-de-carona-listar')
+    def delete(self, request, *args, **kwargs):
+        # Recebe os dados do JSON
+        id_passageiro = request.data.get('id_passageiro')
+        id_carona = request.data.get('id_carona')
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        print(instance)
-        self.perform_destroy(instance)
-        return JsonResponse({'message': 'Grupo de Carona removido com sucesso!.'}, status=204)
+        # Verifica se os IDs foram fornecidos
+        if id_passageiro is None or id_carona is None:
+            return Response({"mensagem": "id_passageiro e id_carona são campos obrigatórios"}, status=400)
+
+        try:
+            # Tenta encontrar e excluir a associação de carona
+            associacao = AssociacaoDeCarona.objects.get(id_passageiro=id_passageiro, id_carona=id_carona)
+            associacao.delete()
+            return Response({"mensagem": "Associação de carona removida com sucesso"}, status=200)
+        except AssociacaoDeCarona.DoesNotExist:
+            return Response({"mensagem": "Associação de carona não encontrada"}, status=404)

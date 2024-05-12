@@ -80,7 +80,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-ALLOWED_HOSTS = ['192.168.0.11', '172.17.57.222']
+ALLOWED_HOSTS = ['192.168.0.11', '172.17.57.222', '__all__', '172.17.240.1']
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
