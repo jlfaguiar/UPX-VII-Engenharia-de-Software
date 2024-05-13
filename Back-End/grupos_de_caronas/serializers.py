@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
 from grupos_de_caronas.models import *
+from localizacoes.models import *
 from api.models import UsuarioMotorista
 
 class GrupoDeCaronaSerializer(serializers.ModelSerializer):
@@ -10,6 +11,7 @@ class GrupoDeCaronaSerializer(serializers.ModelSerializer):
     telefone_motorista = serializers.SerializerMethodField()
     carona_participante = serializers.SerializerMethodField()
     total_passageiros = serializers.SerializerMethodField()
+    localizacao = serializers.SerializerMethodField()
     class Meta:
         model = GrupoDeCarona
         fields = '__all__'
@@ -47,6 +49,11 @@ class GrupoDeCaronaSerializer(serializers.ModelSerializer):
 
         associacoes = AssociacaoDeCarona.objects.filter(id_carona_id=obj.id)
         return len(associacoes)
+
+    def get_localizacao(self, obj):
+
+        return obj.id_localizacao.localizacao
+
 class AssociacaoDeCaronaSerializer(serializers.ModelSerializer):
 
     class Meta:

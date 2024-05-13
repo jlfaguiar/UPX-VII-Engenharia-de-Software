@@ -11,7 +11,7 @@ import django.urls as durls
 import rest_framework.generics as rfg
 
 from api.serializers import UsuarioPassageiroSerializer, UsuarioMotoristaSerializer
-
+import rest_framework.generics as rfg
 
 # Create your views here.
 class NewUsuarioMotorista(generic.CreateView):
@@ -38,6 +38,9 @@ class DetailedUsuarioMotorista(generic.DetailView):
 
     model = UsuarioMotorista
 
+    def get_object(self):
+        id_user = self.kwargs.get('id_user')
+        return rfg.get_object_or_404(UsuarioMotorista, id_user=id_user)
 
 class RemoveUsuarioMotorista(generic.DeleteView):
 
@@ -84,7 +87,6 @@ class NewUsuario(generic.CreateView):
     model = User
     fields = '__all__'
 
-
     def post(self, request, *args, **kwargs):
 
         d_request = json.loads(request.body.decode('utf-8'))
@@ -94,18 +96,13 @@ class NewUsuario(generic.CreateView):
         email = d_request['email']
         is_driver = d_request['is_driver']
 
-        print(is_driver)
-
         try:
-            print(username)
             user = User.objects.create_user(email=email, password=password, username=username)
-            print('criou')
+
         except Exception as error:
-            print(error)
+
             return JsonResponse({'message': 'Erro ao criar usuário: {}'.format(str(error))}, status=400)
 
-        print('chegou aqui')
-        print(user)
         return NewUsuarioMotorista.as_view()(request) if is_driver else NewUsuarioPassageiro.as_view()(request)
 
 class APINewUsuarioMotorista(rfg.CreateAPIView):
@@ -134,6 +131,12 @@ class APIDetailedUsuarioMotorista(rfg.RetrieveAPIView):
     model = UsuarioMotorista
     serializer_class = UsuarioMotoristaSerializer
 
+    def get_object(self):
+
+        id_user = self.kwargs.get('id_user')
+        return rfg.get_object_or_404(UsuarioMotorista, id_user=id_user)
+
+
 class APIRemoveUsuarioMotorista(rfg.DestroyAPIView):
 
     model = UsuarioMotorista
@@ -156,6 +159,10 @@ class APIDetailedUsuarioPassageiro(rfg.RetrieveAPIView):
     model = UsuarioPassageiro
     serializer_class = UsuarioPassageiroSerializer
 
+    def get_object(self):
+        id_user = self.kwargs.get('id_user')
+        print(self.kwargs)
+        return rfg.get_object_or_404(UsuarioPassageiro, id_user=id_user)
 class APIEditUsuarioPassageiro(rfg.UpdateAPIView):
     queryset = UsuarioPassageiro.objects.all()
     serializer_class = UsuarioPassageiroSerializer
@@ -189,6 +196,5 @@ class APIRemoveUsuarioPassageiro(rfg.DestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        print(instance)
         self.perform_destroy(instance)
         return JsonResponse({'message': 'Usuário motorista removido com sucesso.'}, status=204)

@@ -1,13 +1,14 @@
 import { React, useEffect, useState } from "react";
-import { Text, View, Image, FlatList, ScrollView, TouchableOpacity, Modal, TextInput, Dimensions } from "react-native";
+import { Text, View, Image, FlatList, ScrollView, TouchableOpacity, Modal, TextInput } from "react-native";
 import { StyleSheet } from "react-native";
 import { auth } from "../../Services/firebaseConfig";
-import { getDocs, query, collection, where, doc, deleteDoc, getDoc, addDoc, updateDoc, Timestamp } from 'firebase/firestore'
+import { collection, addDoc, Timestamp } from 'firebase/firestore'
 import { db } from "../../Services/firebaseConfig";
 // import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from "axios";
-import back_ip from "../../back_ip";
+import back_link from "../../back_link";
+import { Picker } from "@react-native-picker/picker";
 
 export const Caronas = (props) => {
 
@@ -18,42 +19,57 @@ export const Caronas = (props) => {
 
     const [addingLocalizacaoEmbarque, setAddingLocalizacaoEmbarque] = useState(null);
     const [addingLocalizacaoDesembarque, setAddingLocalizacaoDesembarque] = useState(null);
+    const [addingLocalizacaoGeralId, setAddingLocalizacaoGeralId] = useState(null);
     const [addingValor, setAddingValor] = useState(0);
-    const [addingHorarioEmbarqueIda, setAddingHorarioEmbarqueIda]  = useState(null);
-    const [realAddingHorarioEmbarqueIda, setRealAddingHorarioEmbarqueIda]  = useState(null);
-    const [addingHorarioEmbarqueVolta, setAddingHorarioEmbarqueVolta]  = useState(null);
-    const [realAddingHorarioEmbarqueVolta, setRealAddingHorarioEmbarqueVolta]  = useState(null);
+    const [addingHorarioEmbarqueIda, setAddingHorarioEmbarqueIda] = useState(null);
+    const [realAddingHorarioEmbarqueIda, setRealAddingHorarioEmbarqueIda] = useState(null);
+    const [addingHorarioEmbarqueVolta, setAddingHorarioEmbarqueVolta] = useState(null);
+    const [realAddingHorarioEmbarqueVolta, setRealAddingHorarioEmbarqueVolta] = useState(null);
 
     const [edittingCaronaId, setEdittingCaronaId] = useState('');
+
+    const [filterLocalizacaoId, setFilterLocalizacaoId] = useState(null);
+
+    const [filteredCaronas, setFilteredCaronas] = useState({})
 
     const [embarqueIdaPickerVisible, setEmbarqueIdaPickerVisible] = useState(false);
     const [embarqueVoltaPickerVisible, setEmbarqueVoltaPickerVisible] = useState(false);
 
-    const [userData, setUserData] = useState({});
-    const [userMotorista, setUserMotorista] = useState(false);
+    const [userMotorista, setUserMotorista] = useState(null);
+
+    const [localizacoes, setLocalizacoes] = useState([]);
 
     const [caronas, setCaronas] = useState([]);
 
     const [alreadyHaveGroup, setAlreadyHaveGroup] = useState(false);
-    
+
     const [modoEdicao, setModoEdicao] = useState(false);
 
 
     // Instruções de inicialização
     useEffect(() => {
+        getLocalizacoes();
         getUserData();
     }, [])
+    // Instruções de inicialização
 
     useEffect(() => {
-        console.log('Dados de usuário coletados')
-        getGruposDeCaronaData()
-    }, [userData])
-    // Instruções de inicialização
+        getGruposDeCaronaData();
+    }, [userMotorista])
 
     useEffect(() => {
         console.log('Dados de carona coletados');
         checkAlreadyHaveGroup();
+        checkFilter();
     }, [caronas])
+
+    useEffect(() => {
+    }, [localizacoes])
+
+    useEffect(() => {
+        checkFilter();
+    }, [filterLocalizacaoId])
+
 
     const checkAlreadyHaveGroup = () => {
         const my_id = String(auth.currentUser.uid);
@@ -63,7 +79,18 @@ export const Caronas = (props) => {
                 setAlreadyHaveGroup(true);
             }
         })
+    }
 
+    const checkFilter = async () =>{
+        console.log(filterLocalizacaoId);
+
+        if (filterLocalizacaoId == null) {
+            setFilteredCaronas(caronas);
+        } else {
+            const caronasFiltradas = caronas.filter(carona => carona.id_localizacao === filterLocalizacaoId)
+            setFilteredCaronas(caronasFiltradas);
+            console.log('Código para filtrar as caronas só daquela localização')
+        }
     }
 
     const changeEmbarqueIdaTime = (event, selectedTime) => {
@@ -93,79 +120,77 @@ export const Caronas = (props) => {
         setEmbarqueIdaPickerVisible(false);
     }
 
-    // Obtenção de dados do firebase
-    const getUserData = async() => {
-
-        const newUserData = {}
+    // Obtenção de dados
+    const getUserData = async () => {
+        const mot_user_url = back_link + 'usuariomotorista/' + String(auth.currentUser.uid) + "/detalhar"
+        const pas_user_url = back_link + 'usuariopassageiro/' + String(auth.currentUser.uid) + "/detalhar"
 
         try {
-            console.log('Coletando dados de usuário...')
-            console.log(auth.currentUser.uid)
-            const collectionData = query(collection(db, 'users_motoristas')
-            , where('user_id', '==', auth.currentUser.uid));
 
-            const snapshot = await getDocs(collectionData);
+            const mot_snapshot = await axios.get(mot_user_url).then((data) => {
 
-            if (snapshot.size == 0) {
+                setUserMotorista(true);
 
-                const collectionData = query(collection(db, 'users_passageiros')
-                , where('user_id', '==', auth.currentUser.uid));
-
-                const snapshot = await getDocs(collectionData);
-                
-                if (snapshot.size == 0) {
-                    console.log('Informações sobre usuário não encontradas')
-                    return;
-                } 
-                newUserData['motorista'] = false
-                newUserData['nome'] = snapshot.docs[0].data().nome
-                newUserData['ra'] = snapshot.docs[0].data().ra
-                newUserData['email'] = snapshot.docs[0].data().email
-                newUserData['telefone'] = snapshot.docs[0].data().telefone
-                newUserData['user_id'] = snapshot.docs[0].data().user_id
-                newUserData['cnh'] = null
-            } else {
-                newUserData['motorista'] = true
-                newUserData['nome'] = snapshot.docs[0].data().nome
-                newUserData['ra'] = snapshot.docs[0].data().ra
-                newUserData['email'] = snapshot.docs[0].data().email
-                newUserData['telefone'] = snapshot.docs[0].data().telefone
-                newUserData['user_id'] = snapshot.docs[0].data().user_id
-                newUserData['cnh'] = snapshot.docs[0].data().cnh
-            }
-
-            setUserMotorista(newUserData['motorista'])
-            setUserData(newUserData)
-
+            })
         } catch (error) {
-            console.log('Erro ao coletar dados de usuário');
+            try {
+                const pas_snapshot = await axios.get(pas_user_url).then((data) => {
+
+                    setUserMotorista(false);
+
+                })
+            } catch (error) {
+                console.log('Erro ao coletar informações de usuário!');
+            }
         }
     }
 
-    const getGruposDeCaronaData = async() => {
+    getLocalizacoes = async () => {
+        const newLocalizacoesData = []
+
+        try {
+
+            const url_get = back_link + 'localizacoes'
+
+            const localizacoes_snapshot = await axios.get(url_get).then((localizacoes) => {
+                localizacoes.data.forEach((localizacao) => {
+                    newLocalizacoesData.push(localizacao)
+                })
+            })
+
+            newLocalizacoesData.sort((a, b) => a.localizacao.localeCompare(b.localizacao));
+
+            setLocalizacoes(newLocalizacoesData)
+
+
+        } catch (error) {
+            console.log(error);
+            alert('Erro ao obter as localizações!')
+        }
+    }
+
+    const getGruposDeCaronaData = async () => {
         const newCaronaData = []
         try {
-            console.log('Coletando dados das caronas....')
+            console.log('Coletando dados das caronas...')
 
-            const url_get = "http://" + back_ip + ":8000/api/grupodecarona/" + String(auth.currentUser.uid) + "/lista"
-            console.log(url_get)
+            const url_get = back_link + "grupodecarona/" + String(auth.currentUser.uid) + "/lista"
+
             const carona_snapshot = await axios.get(url_get);
-           // const carona_snapshot = fetch(url_get)
-            console.log('pegou!!!!')
-            console.log(carona_snapshot)
-            console.log('printou')
 
             carona_snapshot.data.forEach((doc) => {
-
+                console.log(doc.horario_embarque_ida);
+                console.log(typeof(doc.horario_embarque_ida));
                 gp_carona = {
                     id: doc.id,
                     horario_embarque_ida: doc.horario_embarque_ida,
                     horario_embarque_volta: doc.horario_embarque_volta,
-                    string_horario_embarque_ida: doc.horario_embarque_ida,
-                    string_horario_embarque_volta: doc.horario_embarque_volta,
+                    string_horario_embarque_ida: String(doc.horario_embarque_ida).split(":").slice(0, 2).join(":"),
+                    string_horario_embarque_volta: String(doc.horario_embarque_volta).split(":").slice(0, 2).join(":"),
                     valor: doc.valor,
                     string_valor: valueToMoneyString(doc.valor),
                     localizacao: doc.localizacao,
+                    id_localizacao: doc.id_localizacao,
                     localizacao_desembarque: doc.localizacao_desembarque,
                     localizacao_embarque: doc.localizacao_embarque,
                     total_passageiros: doc.total_passageiros,
@@ -175,7 +200,7 @@ export const Caronas = (props) => {
                     telefone_motorista: doc.telefone_motorista,
                     carona_participante: doc.carona_participante
                 }
-                
+
                 if (gp_carona.minha_carona) {
                     newCaronaData.unshift(gp_carona)
                 } else {
@@ -183,8 +208,7 @@ export const Caronas = (props) => {
                 }
 
             })
-            console.log('Estes sao os dados das caronas');
-            console.log(newCaronaData);
+
             setCaronas(newCaronaData);
         } catch (error) {
             console.log(error)
@@ -192,8 +216,7 @@ export const Caronas = (props) => {
         }
     }
 
-
-    const entrarEmGrupoDeCarona = async(id_grupo) => {
+    const entrarEmGrupoDeCarona = async (id_grupo) => {
 
         grupo_obj = null;
 
@@ -212,14 +235,11 @@ export const Caronas = (props) => {
             return;
         }
 
-        console.log('Número de passageiros deste grupo: ' + String(grupo_obj.total_passageiros))
-        
-        const create_url = "http://" + back_ip + ":8000/api/associacaodecarona/novo"
+        const create_url = back_link + "associacaodecarona/novo"
         const body = {
             'id_passageiro': String(auth.currentUser.uid),
-            'id_carona': grupo_obj.id
+            'id_carona': id_grupo
         }
-
 
         const create_response = await axios.post(create_url, body).then(() => {
             alert('Sucesso ao entrar no grupo de carona!');
@@ -227,16 +247,16 @@ export const Caronas = (props) => {
         })
     }
 
-    const sairDoGrupoDeCarona = async(id_grupo) => {
+    const sairDoGrupoDeCarona = async (id_grupo) => {
 
-        const del_url = "http://" + back_ip + ":8000/api/associacaodecarona/" + String(auth.currentUser.uid) + "/" + String(id_grupo) + "/apagar"
+        const del_url = back_link + "associacaodecarona/" + String(auth.currentUser.uid) + "/" + String(id_grupo) + "/apagar"
 
         try {
             const delete_response = await axios.delete(del_url).then(() => {
-            alert('Sucesso ao sair do grupo de carona!');
-            getGruposDeCaronaData()
-        })
-           
+                alert('Sucesso ao sair do grupo de carona!');
+                getGruposDeCaronaData()
+            })
+
         } catch (error) {
             console.log(error)
             console.log('Erro ao deletar associação em grupo de carona!');
@@ -257,13 +277,12 @@ export const Caronas = (props) => {
         setEdittingCaronaId(grupo.id)
         setModoEdicao(true);
         setMenuAddCarona(true);
-
+        setAddingLocalizacaoGeralId(grupo.id_localizacao);
     }
 
-    const editarGrupoDeCarona = async() => {
+    const editarGrupoDeCarona = async () => {
         console.log('vc quer editar entao kkkkkkkkkkkkkkkk')
     }
-
 
     // Obtenção de dados do firebase
     const popAdd = () => {
@@ -278,7 +297,21 @@ export const Caronas = (props) => {
 
                     <TextInput placeholder="Localização de Embarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoEmbarque} value={addingLocalizacaoEmbarque} />
 
-                    <TextInput placeholder="Localização de Desembarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoDesembarque} value={addingLocalizacaoDesembarque}/>
+                    <TextInput placeholder="Localização de Desembarque" style={modalStyles.inputField} onChangeText={setAddingLocalizacaoDesembarque} value={addingLocalizacaoDesembarque} />
+
+                    <View style={[modalStyles.inputField, { overflow: 'hidden' }]}>
+                        <Picker style={{ backgroundColor: '#d9d9d9', flex: 1, fontSize: 20 }}
+                            selectedValue={addingLocalizacaoGeralId}
+                            
+                            onValueChange={(itemValue, itemIndex) => {
+                                setAddingLocalizacaoGeralId(itemValue);
+                            }}>
+
+                            {localizacoes.map((local) => (
+                                <Picker.Item key={local.id} label={local.localizacao} value={local.id} />
+                            ))}
+                        </Picker>
+                    </View>
 
                     <TextInput placeholder="Horário de Embarque (ida)" style={modalStyles.inputField}
                         //onTouchStart={() => { setEmbarqueIdaPickerVisible(true) }}
@@ -288,10 +321,9 @@ export const Caronas = (props) => {
 
                     <TextInput placeholder="Horário de Embarque (volta)" style={modalStyles.inputField}
                         onTouchEnd={() => { setEmbarqueVoltaPickerVisible(true) }}
-                        // onFocus={() => { setEmbarqueVoltaPickerVisible(true) }}
                         value={addingHorarioEmbarqueVolta} />
 
-                    <TextInput placeholder="Valor" style={modalStyles.inputField} onChangeText={setAddingValor} value={addingValor}/>
+                    <TextInput placeholder="Valor" style={modalStyles.inputField} onChangeText={setAddingValor} value={addingValor} />
 
                     <View style={{ flex: 1 }} />
 
@@ -345,7 +377,7 @@ export const Caronas = (props) => {
     const timeStampToStringHourMinute = (ts_data) => {
 
         ts_date = new Date(ts_data.seconds * 1000)
-        
+
         string_hour_minute = dateToString(ts_date);
 
         return string_hour_minute
@@ -368,57 +400,90 @@ export const Caronas = (props) => {
         }
 
         return (inteiros + ',' + centavos)
-    } 
+    }
 
-    const createCarona = () => {
+    const formatarHorario = (date) => {
+        // Formata a hora e minuto
+        let hh = date.getHours().toString().padStart(2, '0');
+        let mm = date.getMinutes().toString().padStart(2, '0');
+        let ss = date.getSeconds().toString().padStart(2, '0');
+        let uuuuuu = date.getMilliseconds().toString().padStart(6, '0').slice(0, 6);
+      
+        // Retorna o formato desejado: hh:mm:ss.uuuuuu
+        return `${hh}:${mm}:${ss}`;
+      }
+      
 
-        if (addingValor == 0 || addingLocalizacaoDesembarque == null || addingLocalizacaoDesembarque == null ||
+    const createCarona = async () => {
+
+        console.log(addingLocalizacaoGeralId);
+        console.log(realAddingHorarioEmbarqueVolta)
+
+        if (addingValor == 0 || addingLocalizacaoEmbarque == null || addingLocalizacaoDesembarque == null ||
             addingHorarioEmbarqueIda == null || addingHorarioEmbarqueVolta == null ||
-            realAddingHorarioEmbarqueVolta == null || realAddingHorarioEmbarqueIda == null ) {
-                alert('Preencha todos os campos para criar um grupo de caronas!');
-                return;
-         }
-
+            realAddingHorarioEmbarqueVolta == null || realAddingHorarioEmbarqueIda == null || 
+            addingLocalizacaoGeralId == null) {
+            alert('Preencha todos os campos para criar um grupo de caronas!');
+            return;
+        }
 
         if (isNaN(String(addingValor))) {
             alert('O valor da carona deve ser numérico!');
             return;
         }
 
-        formated_horario_embarque_ida = new Timestamp(((new Date(realAddingHorarioEmbarqueIda)).getTime() / 1000), 0)
-        formated_horario_embarque_volta = new Timestamp(((new Date(realAddingHorarioEmbarqueVolta)).getTime() / 1000), 0)
+        //formated_horario_embarque_ida = new Timestamp(((new Date(realAddingHorarioEmbarqueIda)).getTime() / 1000), 0)
+        //formated_horario_embarque_volta = new Timestamp(((new Date(realAddingHorarioEmbarqueVolta)).getTime() / 1000), 0)
 
+        formated_horario_embarque_ida = formatarHorario(new Date(realAddingHorarioEmbarqueIda))
+        formated_horario_embarque_volta = formatarHorario(realAddingHorarioEmbarqueVolta)
 
-        addDoc(collection(db, 'grupos_de_carona'), {
-           horario_embarque_ida: formated_horario_embarque_ida,
-           horario_embarque_volta: formated_horario_embarque_volta,
-           valor: Number(addingValor),
-           localizacao_desembarque: addingLocalizacaoDesembarque,
-           localizacao_embarque: addingLocalizacaoEmbarque,
-           id_motorista: auth.currentUser.uid,
-           localizacao: 'Campolim - Teste'
-        }).then(() => {
-            alert('Grupo de Carona Adicionado com Sucesso!');
-            cleanModalData();
-            setMenuAddCarona(false);
-        })
+        console.log(caronas[1]);
+
+        const body = {  
+            "id_motorista": String(auth.currentUser.uid),
+            "localizacao_desembarque": addingLocalizacaoDesembarque,
+            "localizacao_embarque": addingLocalizacaoEmbarque,
+            "horario_embarque_ida": formated_horario_embarque_ida,
+            "horario_embarque_volta": formated_horario_embarque_volta,
+            "valor": Number(addingValor),
+            "id_localizacao": addingLocalizacaoGeralId
+        }
+
+        const add_url = back_link + 'grupodecarona/novo'
+        console.log('bodi')
+        console.log(body);
+
+        try {
+            const snap_add = await axios.post(add_url, body).then((response) =>{
+                getGruposDeCaronaData();
+            })
+        } catch (error) {
+            console.log(error);
+            alert('Não foi possível adicionar o grupo de carona no momento!');
+        }
+
+     
     }
 
-    const GrupoDeCarona = ({item}) => {
+    const GrupoDeCarona = ({ item }) => {
 
         carona = item
 
         return (
             <View style={{ backgroundColor: '#d9d9d9', flex: 1, borderRadius: 10, flexDirection: 'row' }}>
-                <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center'}}>
-                    <Image  alt='driver_icon' source={require('./figs/driver_icon.png')} />
+                <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
+                    <Image alt='driver_icon' source={require('./figs/driver_icon.png')} />
                 </View>
                 <View style={{ flex: 4 }}>
-                    <Text style={{fontSize: 20, marginTop: 10, marginBottom: 10, color: '#5CC6BA'}}>
+                    <Text style={{ fontSize: 20, marginTop: 10, marginBottom: 10, color: '#5CC6BA' }}>
                         {carona.nome_motorista}
                     </Text>
                     <Text>
                         Ida: {carona.string_horario_embarque_ida} / Volta: {carona.string_horario_embarque_volta}
+                    </Text>
+                    <Text>
+                        Localização: {carona.localizacao}
                     </Text>
                     <Text>
                         Valor (R$): {carona.string_valor}
@@ -426,7 +491,7 @@ export const Caronas = (props) => {
                     <Text>
                         Telefone: {carona.telefone_motorista}
                     </Text>
-                    <Text style={{marginBottom: 15}}>
+                    <Text style={{ marginBottom: 15 }}>
                         {carona.total_passageiros}/{carona.max_passageiros} Passageiros
                     </Text>
                 </View>
@@ -434,36 +499,50 @@ export const Caronas = (props) => {
                     {/* <Text></Text>  futuramente será usado para abrir detalhes da carona*/}
 
                     {
-                        item.minha_carona ? 
-                        <Text style={GruposDeCaronasStyles.editButton} onPress={() =>
-                            abrirEditorDeCarona(item)}> 
-                            E
-                        </Text> 
-                        :
-                        (!item.carona_participante ?
-                        <Text style={GruposDeCaronasStyles.enterButton} onPress={() =>
-                            entrarEmGrupoDeCarona(item.id)}> 
-                            +
-                        </Text> 
-                        :
-                        <Text style={GruposDeCaronasStyles.leaveButton} onPress={() =>
-                            sairDoGrupoDeCarona(item.id)}>
-                            X
-                            </Text>)
+                        item.minha_carona ?
+                            <Text style={GruposDeCaronasStyles.editButton} onPress={() =>
+                                abrirEditorDeCarona(item)}>
+                                E
+                            </Text>
+                            :
+                            (!item.carona_participante ?
+                                <Text style={GruposDeCaronasStyles.enterButton} onPress={() =>
+                                    entrarEmGrupoDeCarona(item.id)}>
+                                    +
+                                </Text>
+                                :
+                                <Text style={GruposDeCaronasStyles.leaveButton} onPress={() =>
+                                    sairDoGrupoDeCarona(item.id)}>
+                                    X
+                                </Text>)
                     }
                 </View>
             </View>
-        ) 
+        )
     }
 
     // Estrutura do componente principal
     return (
-        <View style={{flex: 1, alignItems: 'center'}}>
+        <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={listaGruposDeCaronasStyles.screenTitle}>Grupos de Caronas</Text>
 
-            <ScrollView style={{flex: 10, width: '80%', height: '100%'}}>
-                <FlatList data={caronas} renderItem={GrupoDeCarona} keyExtractor={item => item.id}
-                ItemSeparatorComponent={<View style={{height: 15}} />}>
+            <View style={listaGruposDeCaronasStyles.dropdown}>
+                <Picker style={{ backgroundColor: '#d9d9d9', flex: 1, fontSize: 20, maxHeight: 50}}
+                    selectedValue={filterLocalizacaoId}
+                    
+                    onValueChange={(itemValue, itemIndex) => {
+                        setFilterLocalizacaoId(itemValue);
+                    }}>
+                    <Picker.Item key={null}  label={"Todas Localizações"} value={null} />
+                    {localizacoes.map((local) => (
+                        <Picker.Item key={local.id} label={local.localizacao} value={local.id} />
+                    ))}
+                </Picker>
+            </View>
+
+            <ScrollView style={{ flex: 20, width: '80%', height: '100%' }}>
+                <FlatList data={filteredCaronas} renderItem={GrupoDeCarona} keyExtractor={item => item.id}
+                    ItemSeparatorComponent={<View style={{ height: 15 }} />}>
 
                 </FlatList>
             </ScrollView>
@@ -471,9 +550,9 @@ export const Caronas = (props) => {
             {popAdd()}
 
             {userMotorista && !alreadyHaveGroup ?
-                <TouchableOpacity style={listaGruposDeCaronasStyles.addBox} onPress={() => { 
+                <TouchableOpacity style={listaGruposDeCaronasStyles.addBox} onPress={() => {
                     setMenuAddCarona(true)
-                    }}>
+                }}>
                     <Image style={listaGruposDeCaronasStyles.addIcon} source={require('./imgs/addIcon.png')} />
                 </TouchableOpacity>
                 :
@@ -510,6 +589,22 @@ const listaGruposDeCaronasStyles = StyleSheet.create({
         top: 9,
         width: 42,
         alignContent: 'center',
+    },
+    dropdown: {
+        backgroundColor: 'white',
+        fontSize: 20,
+        height: "5%",
+        textAlign: 'center',
+        width: "80%",
+        justifyContent: 'center',
+        borderColor: '#d9d9d9',
+        borderWidth: 1,
+        borderRadius: 15,
+       // alignItems: 'center',
+        marginBottom: 20,
+        flex: 1,
+        overflow: 'hidden',
+        maxHeight: 50,
     }
 })
 
@@ -534,16 +629,16 @@ const modalStyles = StyleSheet.create({
         fontWeight: '700',
         left: 'center',
         letterSpacing: 0,
-        position:'relative',
+        position: 'relative',
         width: 'auto',
         alignContent: 'center',
-        alignSelf:'center',
+        alignSelf: 'center',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 40,
         flex: 1
     },
-    inputField : {
+    inputField: {
         color: 'black',
         fontFamily: 'Roboto',
         fontSize: 20,
@@ -614,7 +709,7 @@ const modalStyles = StyleSheet.create({
 
 const GruposDeCaronasStyles = StyleSheet.create({
     enterButton: {
-        borderRadius: 50, 
+        borderRadius: 50,
         backgroundColor: 'green',
         height: 40,
         width: 40,
@@ -624,7 +719,7 @@ const GruposDeCaronasStyles = StyleSheet.create({
         alignContent: 'center'
     },
     leaveButton: {
-        borderRadius: 50, 
+        borderRadius: 50,
         backgroundColor: 'red',
         height: 40,
         width: 40,
@@ -634,7 +729,7 @@ const GruposDeCaronasStyles = StyleSheet.create({
         alignContent: 'center'
     },
     editButton: {
-        borderRadius: 50, 
+        borderRadius: 50,
         backgroundColor: '#00d7fc',
         height: 40,
         width: 40,

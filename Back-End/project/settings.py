@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'grupos_de_caronas',
+    'localizacoes',
     'corsheaders',
     'rest_framework'
 ]

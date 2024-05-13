@@ -5,8 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ac558e06-1cf3-442b-94b1-f26558bdb270" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/localizacoes/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/grupos_de_caronas/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/grupos_de_caronas/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/grupos_de_caronas/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/grupos_de_caronas/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/grupos_de_caronas/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/grupos_de_caronas/serializers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/project/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/Caronas.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/Caronas.jsx" afterDir="false" />
     </list>

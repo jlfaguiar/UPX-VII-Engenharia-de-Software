@@ -18,47 +18,37 @@ from django.urls import path
 
 from api.views import *
 from grupos_de_caronas.views import *
+from localizacoes.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('usuariomotorista/novo/', NewUsuarioMotorista.as_view(), name='usuario-motorista-novo'),
-    path('usuariomotorista/lista/', ListUsuarioMotorista.as_view(), name='usuario-motorista-lista'),
-    path('usuariomotorista/<int:pk>/editar/', EditUsuarioMotorista.as_view(), name='usuario-motorista-editar'),
-    path('usuariomotorista/<int:pk>/detalhar/', DetailedUsuarioMotorista.as_view(), name='usuario-motorista-detalhar'),
-    path('usuariomotorista/<int:pk>/apagar/', RemoveUsuarioMotorista.as_view(), name='usuario-motorista-apagar'),
-
-    path('usuariopassageiro/novo/', NewUsuarioPassageiro.as_view(), name='usuario-passageiro-novo'),
-    path('usuariopassageiro/lista/', ListUsuarioPassageiro.as_view(), name='usuario-passageiro-lista'),
-    path('usuariopassageiro/<int:pk>/editar/', EditUsuarioPassageiro.as_view(), name='usuario-passageiro-editar'),
-    path('usuariopassageiro/<int:pk>/detalhar/', DetailedUsuarioPassageiro.as_view(),
-         name='usuario-passageiro-detalhar'),
-    path('usuariopassageiro/<int:pk>/apagar/', RemoveUsuarioPassageiro.as_view(), name='usuario-passageiro-apagar'),
-
     path('api/usuariomotorista/novo/', APINewUsuarioMotorista.as_view(), name='api-usuario-motorista-novo'),
-
     path('api/usuariopassageiro/novo/', APINewUsuarioPassageiro.as_view(), name='api-usuario-passageiro-novo'),
-    # path('api/usuariopassageiro/lista/', APIListUsuarioPassageiro.as_view(), name='api-usuario-passageiro-listar'),
-    path('api/usuariopassageiro/<str:id_user>/editar', APIEditUsuarioPassageiro.as_view(),
-         name='api-usuario-passageiro-editar'),
-    path('api/usuariopassageiro/<str:id_user>/apagar', APIRemoveUsuarioPassageiro.as_view(),
-         name='api-usuario-passageiro-apagar'),
+
+    # path('api/usuariopassageiro/<str:id_user>/editar', APIEditUsuarioPassageiro.as_view(),
+    #      name='api-usuario-passageiro-editar'),
+    # path('api/usuariopassageiro/<str:id_user>/apagar', APIRemoveUsuarioPassageiro.as_view(),
+    #      name='api-usuario-passageiro-apagar'),
+
+    path('api/usuariopassageiro/<str:id_user>/detalhar/', APIDetailedUsuarioPassageiro.as_view(),
+         name='api-usuario-passageiro-detalhar'),
+    path('api/usuariomotorista/<str:id_user>/detalhar/', APIDetailedUsuarioMotorista.as_view(),
+         name='api-usuario-motorista-detalhar'),
 
     path('api/grupodecarona/novo', APINewGrupoDeCarona.as_view(), name='api-grupo-de-carona-novo'),
     path('api/grupodecarona/<str:id_usuario>/lista/', APIListGrupoDeCarona.as_view(),
          name='api-grupo-de-carona-listar'),
     path('api/grupodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
          name='api-grupo-de-carona-editar'),
-    path('api/grupodecarona/<str:id_user>/apagar', APIRemoveGrupoDeCarona.as_view(), name='api-grupo-de-carona-apagar'),
+    path('api/grupodecarona/<str:id_user>/apagar', APIRemoveGrupoDeCarona.as_view(),
+         name='api-grupo-de-carona-apagar'),
 
     path('api/associacaodecarona/novo', APINewAssociacaoDeCarona.as_view(),
          name='api-associacao-de-carona-novo'),
-    path('api/associacaodecarona/lista/', APIListAssociacaoDeCarona.as_view(),
-         name='api-grupo-de-carona-listar'),
-    # path('api/associacaodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
-    #      name='api-grupo-de-carona-editar'),
     path('api/associacaodecarona/<str:id_passageiro>/<int:id_carona>/apagar', APIRemoveAssociacaoDeCarona.as_view(),
          name='api-associacao-de-carona-apagar'),
 
+    path('api/localizacoes', APIListLocalizacoes.as_view(), name='api-localizacoes-listar'),
 ]
 

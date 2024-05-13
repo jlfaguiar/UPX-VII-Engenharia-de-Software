@@ -1,16 +1,17 @@
 from django.db import models
 import django.urls as durls
-
+from localizacoes.models import *
 class GrupoDeCarona(models.Model):
 
     id_motorista = models.CharField(max_length=28)
 
-    localizacao = models.CharField(max_length=100, unique=False)
     localizacao_desembarque = models.CharField(max_length=150, unique=False)
     localizacao_embarque = models.CharField(max_length=150, unique=False)
 
     horario_embarque_ida = models.TimeField()
     horario_embarque_volta = models.TimeField()
+
+    id_localizacao = models.ForeignKey(Localizacao, on_delete=models.CASCADE)
 
     valor = models.FloatField()
     def __str__(self):
