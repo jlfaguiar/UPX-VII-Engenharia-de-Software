@@ -462,8 +462,6 @@ export const Caronas = (props) => {
             console.log(error);
             alert('Não foi possível adicionar o grupo de carona no momento!');
         }
-
-     
     }
 
     const GrupoDeCarona = ({ item }) => {
