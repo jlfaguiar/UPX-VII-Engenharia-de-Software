@@ -299,8 +299,6 @@ export const Caronas = (props) => {
             return;
         }
 
-        console.log('a')
-
         if (isNaN(String(addingValor))) {
             alert('O valor da carona deve ser numérico!');
             return;
@@ -315,8 +313,6 @@ export const Caronas = (props) => {
             "valor": Number(addingValor),
             "id_localizacao": addingLocalizacaoGeralId
         }
-        
-        console.log(body)
 
         const edit_url = back_link + 'grupodecarona/' + String(edittingCaronaId) + '/editar'
         try {

@@ -14,11 +14,28 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
+
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
 
 from api.views import *
 from grupos_de_caronas.views import *
 from localizacoes.views import *
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="API do FACENS Caronas",
+      default_version='v1',
+      description="Documentação da API do FACENS Caronas usando Swagger",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="jlfaguiar@outlook.com"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,7 +56,7 @@ urlpatterns = [
     path('api/grupodecarona/novo', APINewGrupoDeCarona.as_view(), name='api-grupo-de-carona-novo'),
     path('api/grupodecarona/<str:id_usuario>/lista/', APIListGrupoDeCarona.as_view(),
          name='api-grupo-de-carona-listar'),
-    path('api/grupodecarona/<str:id_motorista>/editar', APIEditUsuarioPassageiro.as_view(),
+    path('api/grupodecarona/<int:id>/editar', APIEditGrupoDeCarona.as_view(),
          name='api-grupo-de-carona-editar'),
     path('api/grupodecarona/<str:id_user>/apagar', APIRemoveGrupoDeCarona.as_view(),
          name='api-grupo-de-carona-apagar'),
@@ -50,5 +67,9 @@ urlpatterns = [
          name='api-associacao-de-carona-apagar'),
 
     path('api/localizacoes', APIListLocalizacoes.as_view(), name='api-localizacoes-listar'),
+
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
 

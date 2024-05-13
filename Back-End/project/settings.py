@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'grupos_de_caronas',
     'localizacoes',
     'corsheaders',
-    'rest_framework'
+    'rest_framework',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -81,7 +82,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-ALLOWED_HOSTS = ['192.168.0.11', '172.17.57.222', '__all__', '172.17.240.1']
+ALLOWED_HOSTS = ['192.168.0.11', '172.17.57.222', '__all__', '172.17.240.1', '192.168.120.109']
+ALLOWED_HOSTS = ['*']
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 

@@ -28,22 +28,21 @@ class APIEditGrupoDeCarona(rfg.UpdateAPIView):
 
     queryset = GrupoDeCarona.objects.all()
     serializer_class = GrupoDeCaronaSerializer
-    lookup_field = 'id_motorista'
+    lookup_field = 'id'  # Use 'id' como lookup_field
     http_method_names = ['put', 'patch']
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        data = request.data.copy()
 
-        if 'id_motorista' in data:
-            del data['id_motorista']
+        # Verificação de id_motorista
+        id_motorista = request.data.get('id_motorista')
+        if id_motorista and id_motorista != instance.id_motorista:
+            return Response({"error": "Motorista não corresponde ao grupo de carona"}, status=400)
 
-        data['id_motorista'] = kwargs.get('id_motorista')
-
-        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer, )
+        self.perform_update(serializer)
 
         return Response(serializer.data)
 
@@ -77,29 +76,6 @@ class APIListAssociacaoDeCarona(rfg.ListAPIView):
 #
 #     model = GrupoDeCarona
 #     serializer_class = GrupoDeCaronaSerializer
-
-# class APIEditAssociacaoDeCarona(rfg.UpdateAPIView):
-#
-#     queryset = AssociacaoDeCarona.objects.all()
-#     serializer_class = AssociacaoDeCaronaSerializer
-#     lookup_field = 'id_motorista'
-#     http_method_names = ['put', 'patch']
-#
-#     def update(self, request, *args, **kwargs):
-#         partial = kwargs.pop('partial', False)
-#         instance = self.get_object()
-#         data = request.data.copy()
-#
-#         if 'id_motorista' in data:
-#             del data['id_motorista']
-#
-#         data['id_motorista'] = kwargs.get('id_motorista')
-#
-#         serializer = self.get_serializer(instance, data=data, partial=partial)
-#         serializer.is_valid(raise_exception=True)
-#         self.perform_update(serializer, )
-#
-#         return Response(serializer.data)
 
 class APIRemoveAssociacaoDeCarona(rfg.DestroyAPIView):
     model = AssociacaoDeCarona
