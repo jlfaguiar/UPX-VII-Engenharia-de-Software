@@ -145,7 +145,7 @@ export const Caronas = (props) => {
         }
     }
 
-    getLocalizacoes = async () => {
+    const getLocalizacoes = async () => {
         const newLocalizacoesData = []
 
         try {
@@ -264,6 +264,15 @@ export const Caronas = (props) => {
 
     }
 
+    const formatarHorario = (date) => {
+
+        let hh = date.getHours().toString().padStart(2, '0');
+        let mm = date.getMinutes().toString().padStart(2, '0');
+        let ss = date.getSeconds().toString().padStart(2, '0');
+
+        return `${hh}:${mm}:${ss}`;
+    }
+
     const abrirEditorDeCarona = (grupo) => {
         setAddingLocalizacaoEmbarque(grupo.localizacao_embarque);
         setAddingLocalizacaoDesembarque(grupo.localizacao_desembarque);
@@ -274,7 +283,7 @@ export const Caronas = (props) => {
         setAddingValor(String(grupo.valor).replace('.', ','));
         setEmbarqueVoltaPickerVisible(false);
         setEmbarqueIdaPickerVisible(false);
-        setEdittingCaronaId(grupo.id)
+        setEdittingCaronaId(grupo.id);
         setModoEdicao(true);
         setMenuAddCarona(true);
         setAddingLocalizacaoGeralId(grupo.id_localizacao);
@@ -282,6 +291,44 @@ export const Caronas = (props) => {
 
     const editarGrupoDeCarona = async () => {
         console.log('vc quer editar entao kkkkkkkkkkkkkkkk')
+        if (addingValor == 0 || addingLocalizacaoEmbarque == null || addingLocalizacaoDesembarque == null ||
+            addingHorarioEmbarqueIda == null || addingHorarioEmbarqueVolta == null ||
+            realAddingHorarioEmbarqueVolta == null || realAddingHorarioEmbarqueIda == null || 
+            addingLocalizacaoGeralId == null) {
+            alert('Preencha todos os campos para editar um grupo de caronas!');
+            return;
+        }
+
+        console.log('a')
+
+        if (isNaN(String(addingValor))) {
+            alert('O valor da carona deve ser numérico!');
+            return;
+        }
+
+        const body = { 
+            "id_motorista": String(auth.currentUser.uid),
+            "localizacao_desembarque": addingLocalizacaoDesembarque,
+            "localizacao_embarque": addingLocalizacaoEmbarque,
+            "horario_embarque_ida": realAddingHorarioEmbarqueIda,
+            "horario_embarque_volta": realAddingHorarioEmbarqueVolta,
+            "valor": Number(addingValor),
+            "id_localizacao": addingLocalizacaoGeralId
+        }
+        
+        console.log(body)
+
+        const edit_url = back_link + 'grupodecarona/' + String(edittingCaronaId) + '/editar'
+        try {
+            const snap_edit = await axios.put(edit_url, body).then((response) =>{
+                getGruposDeCaronaData();
+            })
+        } catch (error) {
+            console.log(error);
+            alert('Não foi possível editar o grupo de carona no momento!');
+            getGruposDeCaronaData();
+        }
+
     }
 
     // Obtenção de dados do firebase
@@ -327,7 +374,9 @@ export const Caronas = (props) => {
 
                     <View style={{ flex: 1 }} />
 
-                    <TouchableOpacity style={modalStyles.addButton} onPress={modoEdicao ? editarGrupoDeCarona : createCarona}>
+                    <TouchableOpacity style={modalStyles.addButton} onPress={() => {
+                        if(modoEdicao) {editarGrupoDeCarona()} else {createCarona()}}
+                        }>
                         <Text style={modalStyles.buttonTextAdd}>Confirmar</Text>
                     </TouchableOpacity>
 
@@ -401,23 +450,9 @@ export const Caronas = (props) => {
 
         return (inteiros + ',' + centavos)
     }
-
-    const formatarHorario = (date) => {
-        // Formata a hora e minuto
-        let hh = date.getHours().toString().padStart(2, '0');
-        let mm = date.getMinutes().toString().padStart(2, '0');
-        let ss = date.getSeconds().toString().padStart(2, '0');
-        let uuuuuu = date.getMilliseconds().toString().padStart(6, '0').slice(0, 6);
-      
-        // Retorna o formato desejado: hh:mm:ss.uuuuuu
-        return `${hh}:${mm}:${ss}`;
-      }
-      
+    
 
     const createCarona = async () => {
-
-        console.log(addingLocalizacaoGeralId);
-        console.log(realAddingHorarioEmbarqueVolta)
 
         if (addingValor == 0 || addingLocalizacaoEmbarque == null || addingLocalizacaoDesembarque == null ||
             addingHorarioEmbarqueIda == null || addingHorarioEmbarqueVolta == null ||
@@ -432,13 +467,8 @@ export const Caronas = (props) => {
             return;
         }
 
-        //formated_horario_embarque_ida = new Timestamp(((new Date(realAddingHorarioEmbarqueIda)).getTime() / 1000), 0)
-        //formated_horario_embarque_volta = new Timestamp(((new Date(realAddingHorarioEmbarqueVolta)).getTime() / 1000), 0)
-
         formated_horario_embarque_ida = formatarHorario(new Date(realAddingHorarioEmbarqueIda))
         formated_horario_embarque_volta = formatarHorario(realAddingHorarioEmbarqueVolta)
-
-        console.log(caronas[1]);
 
         const body = {  
             "id_motorista": String(auth.currentUser.uid),
@@ -451,9 +481,6 @@ export const Caronas = (props) => {
         }
 
         const add_url = back_link + 'grupodecarona/novo'
-        console.log('bodi')
-        console.log(body);
-
         try {
             const snap_add = await axios.post(add_url, body).then((response) =>{
                 getGruposDeCaronaData();
@@ -547,9 +574,12 @@ export const Caronas = (props) => {
 
             {popAdd()}
 
+            <View style={{flex: 1, maxHeight: 50}} />
+
             {userMotorista && !alreadyHaveGroup ?
                 <TouchableOpacity style={listaGruposDeCaronasStyles.addBox} onPress={() => {
-                    setMenuAddCarona(true)
+                    setModoEdicao(false);
+                    setMenuAddCarona(true);
                 }}>
                     <Image style={listaGruposDeCaronasStyles.addIcon} source={require('./imgs/addIcon.png')} />
                 </TouchableOpacity>
