@@ -4,7 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ac558e06-1cf3-442b-94b1-f26558bdb270" name="Changes" comment="" />
+    <list default="true" id="ac558e06-1cf3-442b-94b1-f26558bdb270" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/Login/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/Login/Login.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/Login/imgs/Logo.png" beforeDir="false" afterPath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/Login/imgs/Logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/Main/Main.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/Main/Main.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/Caronas.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/figs/driver_icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/imgs/addIcon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/imgs/editIcon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/imgs/removeIcon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/Screens/MeusVeiculos/imgs/simpleLine.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Front-End/facens_caronas/back_ip.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Front-End/facens_caronas/back_ip.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

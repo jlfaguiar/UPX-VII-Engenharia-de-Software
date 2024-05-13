@@ -2,7 +2,7 @@ import { React, useEffect } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { Image } from "react-native";
-import { Caronas } from "../MeusVeiculos/Caronas";
+import { Caronas } from "../Caronas/Caronas";
 import { StyleSheet } from "react-native";
 import { auth } from "../../Services/firebaseConfig";
 

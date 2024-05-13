@@ -419,15 +419,6 @@ export const Caronas = (props) => {
         return horas + ':' + minutos
     }
 
-    const timeStampToStringHourMinute = (ts_data) => {
-
-        ts_date = new Date(ts_data.seconds * 1000)
-
-        string_hour_minute = dateToString(ts_date);
-
-        return string_hour_minute
-    }
-
     const valueToMoneyString = (num_data) => {
 
         const num_data_splitted = String(num_data).split('.')
@@ -447,7 +438,6 @@ export const Caronas = (props) => {
         return (inteiros + ',' + centavos)
     }
     
-
     const createCarona = async () => {
 
         if (addingValor == 0 || addingLocalizacaoEmbarque == null || addingLocalizacaoDesembarque == null ||
@@ -458,7 +448,7 @@ export const Caronas = (props) => {
             return;
         }
 
-        if (isNaN(String(addingValor))) {
+        if (isNaN(String(addingValor).replace(',', '.'))) {
             alert('O valor da carona deve ser numérico!');
             return;
         }
@@ -494,7 +484,7 @@ export const Caronas = (props) => {
         return (
             <View style={{ backgroundColor: '#d9d9d9', flex: 1, borderRadius: 10, flexDirection: 'row' }}>
                 <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
-                    <Image alt='driver_icon' source={require('./figs/driver_icon.png')} />
+                    <Image alt='driver_icon' source={require('./imgs/driver_icon.png')} />
                 </View>
                 <View style={{ flex: 4 }}>
                     <Text style={{ fontSize: 20, marginTop: 10, marginBottom: 10, color: '#5CC6BA' }}>
@@ -521,21 +511,20 @@ export const Caronas = (props) => {
 
                     {
                         item.minha_carona ?
-                            <Text style={GruposDeCaronasStyles.editButton} onPress={() =>
-                                abrirEditorDeCarona(item)}>
-                                E
-                            </Text>
+
+                            <TouchableOpacity style={GruposDeCaronasStyles.editButton} 
+                            onPress={() => abrirEditorDeCarona(item)}>
+                                <Image style={{width: 20, height: 20}} resizeMode='contain' source={require('./imgs/editIcon.png')} />
+                            </ TouchableOpacity>
                             :
                             (!item.carona_participante ?
-                                <Text style={GruposDeCaronasStyles.enterButton} onPress={() =>
-                                    entrarEmGrupoDeCarona(item.id)}>
-                                    +
-                                </Text>
+                                <TouchableOpacity style={GruposDeCaronasStyles.enterButton} onPress={() => entrarEmGrupoDeCarona(item.id)}>
+                                    <Image style={{width: 20, height: 20}} resizeMode='contain' source={require('./imgs/joinIcon.png')} />
+                                </TouchableOpacity>
                                 :
-                                <Text style={GruposDeCaronasStyles.leaveButton} onPress={() =>
-                                    sairDoGrupoDeCarona(item.id)}>
-                                    X
-                                </Text>)
+                                <TouchableOpacity style={GruposDeCaronasStyles.leaveButton} onPress={() => sairDoGrupoDeCarona(item.id)}>
+                                    <Image style={{width: 25, height: 25}} resizeMode='contain' source={require('./imgs/exitIcon.png')} />
+                                </TouchableOpacity>)
                     }
                 </View>
             </View>
@@ -740,7 +729,8 @@ const GruposDeCaronasStyles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        alignContent: 'center'
+        alignContent: 'center',
+        overflow: 'hidden'
     },
     leaveButton: {
         borderRadius: 50,
@@ -750,7 +740,8 @@ const GruposDeCaronasStyles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        alignContent: 'center'
+        alignContent: 'center',
+        overflow: 'hidden'
     },
     editButton: {
         borderRadius: 50,
@@ -760,7 +751,8 @@ const GruposDeCaronasStyles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        alignContent: 'center'
+        alignContent: 'center',
+        overflow: 'hidden'
     }
 })
 

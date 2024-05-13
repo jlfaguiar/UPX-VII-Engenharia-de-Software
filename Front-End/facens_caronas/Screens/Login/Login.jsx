@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet } from 'react-native';
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image } from "react-native";
 import { browserLocalPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from "../../Services/firebaseConfig";
 import { setPersistence } from "firebase/auth";
-
 
 
 
@@ -71,7 +70,7 @@ const loginStyles = StyleSheet.create({
   'button': {
     backgroundColor: '#5CC6BA',
     borderRadius: 80,
-    top: 411,
+    top: 325,
     width: 300,
     position: 'absolute',
     alignContent: 'center',
@@ -159,11 +158,13 @@ export const Login = (props) => {
     <View style={loginStyles.container}>
       <View style={loginStyles.View}>
 
-        <Text style={{
+        {/* <Text style={{
           color: '#5CC6BA',
           alignSelf: 'center',
           fontSize: 30,
-        }}>FACENS Caronas</Text>
+        }}>FACENS Caronas</Text> */}
+
+        <Image  style={{alignSelf: 'center'}} source={require('./imgs/Logo.png')} />
 
         <View style={loginStyles["overlap-group"]}>
           <View style={loginStyles.rectangle}/>
