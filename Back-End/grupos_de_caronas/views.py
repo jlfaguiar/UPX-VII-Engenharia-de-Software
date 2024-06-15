@@ -1,34 +1,41 @@
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.http import JsonResponse, Http404
 from rest_framework.response import Response
-from django.http import Http404
-from grupos_de_caronas.serializers import *
-import rest_framework.urls as ruls
-import rest_framework.generics as rfg
+from rest_framework import generics
+from grupos_de_caronas.serializers import GrupoDeCaronaSerializer, AssociacaoDeCaronaSerializer
+from grupos_de_caronas.models import GrupoDeCarona, AssociacaoDeCarona
+from django.urls import reverse_lazy
 
-# Create your views here.
-class APINewGrupoDeCarona(rfg.CreateAPIView):
+# Serviço para manipular GrupoDeCarona
+class GrupoDeCaronaService:
+    @staticmethod
+    def verificar_motorista(grupo, id_motorista):
+        if id_motorista and id_motorista != grupo.id_motorista:
+            return False
+        return True
 
+# Serviço para manipular AssociacaoDeCarona
+class AssociacaoDeCaronaService:
+    @staticmethod
+    def obter_associacao(queryset, id_passageiro, id_carona):
+        try:
+            return queryset.get(id_passageiro=id_passageiro, id_carona=id_carona)
+        except AssociacaoDeCarona.DoesNotExist:
+            raise Http404
+
+class APINewGrupoDeCarona(generics.CreateAPIView):
     model = GrupoDeCarona
     serializer_class = GrupoDeCaronaSerializer
     fields = '__all__'
 
-class APIListGrupoDeCarona(rfg.ListAPIView):
-
+class APIListGrupoDeCarona(generics.ListAPIView):
     model = GrupoDeCarona
     queryset = GrupoDeCarona.objects.all()
     serializer_class = GrupoDeCaronaSerializer
 
-# class APIDetailedGrupoDeCarona(rfg.RetrieveAPIView):
-#
-#     model = GrupoDeCarona
-#     serializer_class = GrupoDeCaronaSerializer
-
-class APIEditGrupoDeCarona(rfg.UpdateAPIView):
-
+class APIEditGrupoDeCarona(generics.UpdateAPIView):
     queryset = GrupoDeCarona.objects.all()
     serializer_class = GrupoDeCaronaSerializer
-    lookup_field = 'id'  # Use 'id' como lookup_field
+    lookup_field = 'id'
     http_method_names = ['put', 'patch']
 
     def update(self, request, *args, **kwargs):
@@ -37,7 +44,7 @@ class APIEditGrupoDeCarona(rfg.UpdateAPIView):
 
         # Verificação de id_motorista
         id_motorista = request.data.get('id_motorista')
-        if id_motorista and id_motorista != instance.id_motorista:
+        if not GrupoDeCaronaService.verificar_motorista(instance, id_motorista):
             return Response({"error": "Motorista não corresponde ao grupo de carona"}, status=400)
 
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -46,38 +53,30 @@ class APIEditGrupoDeCarona(rfg.UpdateAPIView):
 
         return Response(serializer.data)
 
-class APIRemoveGrupoDeCarona(rfg.DestroyAPIView):
-
+class APIRemoveGrupoDeCarona(generics.DestroyAPIView):
     queryset = GrupoDeCarona.objects.all()
-
-    model = GrupoDeCarona
     lookup_field = 'id_motorista'
-    success_url = durls.reverse_lazy('api-grupo-de-carona-listar')
+    success_url = reverse_lazy('api-grupo-de-carona-listar')
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        print(instance)
         self.perform_destroy(instance)
-        return JsonResponse({'message': 'Grupo de Carona removido com sucesso!.'}, status=204)
+        return JsonResponse({'message': 'Grupo de Carona removido com sucesso!'}, status=204)
 
-class APINewAssociacaoDeCarona(rfg.CreateAPIView):
+class APINewAssociacaoDeCarona(generics.CreateAPIView):
+
     queryset = AssociacaoDeCarona.objects.all()
     serializer_class = AssociacaoDeCaronaSerializer
     model = AssociacaoDeCarona
 
-
-class APIListAssociacaoDeCarona(rfg.ListAPIView):
+class APIListAssociacaoDeCarona(generics.ListAPIView):
 
     model = AssociacaoDeCarona
     queryset = AssociacaoDeCarona.objects.all()
     serializer_class = AssociacaoDeCaronaSerializer
 
-# class APIDetailedGrupoDeCarona(rfg.RetrieveAPIView):
-#
-#     model = GrupoDeCarona
-#     serializer_class = GrupoDeCaronaSerializer
+class APIRemoveAssociacaoDeCarona(generics.DestroyAPIView):
 
-class APIRemoveAssociacaoDeCarona(rfg.DestroyAPIView):
     model = AssociacaoDeCarona
     queryset = AssociacaoDeCarona.objects.all()
     serializer_class = AssociacaoDeCaronaSerializer
@@ -85,11 +84,7 @@ class APIRemoveAssociacaoDeCarona(rfg.DestroyAPIView):
     def get_object(self):
         id_passageiro = self.kwargs.get('id_passageiro')
         id_carona = self.kwargs.get('id_carona')
-
-        try:
-            return self.queryset.get(id_passageiro=id_passageiro, id_carona=id_carona)
-        except AssociacaoDeCarona.DoesNotExist:
-            raise Http404
+        return AssociacaoDeCaronaService.obter_associacao(self.queryset, id_passageiro, id_carona)
 
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()

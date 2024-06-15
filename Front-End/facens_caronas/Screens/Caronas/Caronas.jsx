@@ -1,10 +1,7 @@
-import { React, useEffect, useState } from "react";
+import { React, act, useEffect, useState } from "react";
 import { Text, View, Image, FlatList, ScrollView, TouchableOpacity, Modal, TextInput } from "react-native";
 import { StyleSheet } from "react-native";
 import { auth } from "../../Services/firebaseConfig";
-import { collection, addDoc, Timestamp } from 'firebase/firestore'
-import { db } from "../../Services/firebaseConfig";
-// import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from "axios";
 import back_link from "../../back_link";
@@ -45,6 +42,8 @@ export const Caronas = (props) => {
 
     const [modoEdicao, setModoEdicao] = useState(false);
 
+    const [activeCarona, setActiveCarona] = useState({});
+    const [modalDetailsCarona, setModalDetailsCarona] = useState(false);
 
     // Instruções de inicialização
     useEffect(() => {
@@ -149,7 +148,7 @@ export const Caronas = (props) => {
         const newLocalizacoesData = []
 
         try {
-
+            console.log(back_link)
             const url_get = back_link + 'localizacoes'
 
             const localizacoes_snapshot = await axios.get(url_get).then((localizacoes) => {
@@ -408,6 +407,65 @@ export const Caronas = (props) => {
         )
     }
 
+    const detailsCarona = () => {
+        return (
+            <Modal animationType="fade" visible={modalDetailsCarona} transparent={true}>
+                <View style={modalStyles.modalScreen}>
+                    <View style={{ flex: 1 }} />
+
+                    <Text style={modalStyles.modalTitle}>Detalhes da Carona</Text>
+
+                    <View style={{ flex: 1 }} />
+
+                    <Text style={modalStyles.simpleText}>
+                        Nome do Motorista: {activeCarona.nome_motorista}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Localização de Embarque: {activeCarona.localizacao_embarque}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Horário de Embarque (ida): {activeCarona.string_horario_embarque_ida}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Localização de Desembarque: {activeCarona.localizacao_desembarque}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Horário de Embarque (volta): {activeCarona.string_horario_embarque_volta}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Telefone do Motorista: {activeCarona.telefone_motorista}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Preço Colaborativo: R${activeCarona.string_valor}
+                    </Text>
+
+                    <Text style={modalStyles.simpleText}>
+                        Vagas disponíveis: {activeCarona.total_passageiros}/{activeCarona.max_passageiros}
+                    </Text>
+
+                    <View style={{ flex: 1 }} />
+
+                    <TouchableOpacity style={modalStyles.cancelButton} onPress={() => {
+                        closeDetailsCarona();
+                    }}>
+                        <Text style={modalStyles.buttonTextCancel}>Fechar</Text>
+
+                    </TouchableOpacity>
+
+                    <View style={{ flex: 1 }} />
+                </View>
+
+     
+            </Modal>
+        )
+    }
+
     const dateToString = (date_data) => {
 
         horas = date_data.getHours()
@@ -477,6 +535,16 @@ export const Caronas = (props) => {
         }
     }
 
+    const openDetailsCarona = (grupoDetails) => {
+        setActiveCarona(grupoDetails);
+        setModalDetailsCarona(true);
+    }
+
+    const closeDetailsCarona = () => {
+        setActiveCarona({});
+        setModalDetailsCarona(false);
+    }
+
     const GrupoDeCarona = ({ item }) => {
 
         carona = item
@@ -499,9 +567,7 @@ export const Caronas = (props) => {
                     <Text>
                         Valor (R$): {carona.string_valor}
                     </Text>
-                    <Text>
-                        Telefone: {carona.telefone_motorista}
-                    </Text>
+
                     <Text style={{ marginBottom: 15 }}>
                         {carona.total_passageiros}/{carona.max_passageiros} Passageiros
                     </Text>
@@ -518,13 +584,28 @@ export const Caronas = (props) => {
                             </ TouchableOpacity>
                             :
                             (!item.carona_participante ?
-                                <TouchableOpacity style={GruposDeCaronasStyles.enterButton} onPress={() => entrarEmGrupoDeCarona(item.id)}>
-                                    <Image style={{width: 20, height: 20}} resizeMode='contain' source={require('./imgs/joinIcon.png')} />
-                                </TouchableOpacity>
+                                <View>
+                                    <TouchableOpacity style={GruposDeCaronasStyles.enterButton} onPress={() => entrarEmGrupoDeCarona(item.id)}>
+                                        <Image style={{width: 20, height: 20}} resizeMode='contain' source={require('./imgs/joinIcon.png')} />
+                                    </TouchableOpacity>
+                                    <View style={{flex: 1, minHeight: 20}}/>
+                                    <TouchableOpacity style={GruposDeCaronasStyles.infosButton} onPress={() => openDetailsCarona(item)}>
+                                        <Image style={{width: 20, height: 20}} resizeMode='contain' source={require('./imgs/infosIcon.png')} />
+                                    </TouchableOpacity>
+                                </View>
+                                
                                 :
-                                <TouchableOpacity style={GruposDeCaronasStyles.leaveButton} onPress={() => sairDoGrupoDeCarona(item.id)}>
-                                    <Image style={{width: 25, height: 25}} resizeMode='contain' source={require('./imgs/exitIcon.png')} />
-                                </TouchableOpacity>)
+                                <View>
+                                    <TouchableOpacity style={GruposDeCaronasStyles.leaveButton} onPress={() => sairDoGrupoDeCarona(item.id)}>
+                                        <Image style={{width: 25, height: 25}} resizeMode='contain' source={require('./imgs/exitIcon.png')} />
+                                    </TouchableOpacity>
+                                    <View style={{flex: 1, minHeight: 20}}/>
+                                    <TouchableOpacity style={GruposDeCaronasStyles.infosButton} onPress={() => openDetailsCarona(item)}>
+                                        <Image style={{width: 20, height: 20}} resizeMode='contain' source={require('./imgs/infosIcon.png')} />
+                                    </TouchableOpacity>
+                                </View>
+                                )
+
                     }
                 </View>
             </View>
@@ -558,7 +639,7 @@ export const Caronas = (props) => {
             </ScrollView>
 
             {popAdd()}
-
+            {detailsCarona()}
             <View style={{flex: 1, maxHeight: 50}} />
 
             {userMotorista && !alreadyHaveGroup ?
@@ -717,6 +798,13 @@ const modalStyles = StyleSheet.create({
         fontSize: 20,
         fontFamily: 'Roboto',
         color: '#5CC6BA'
+    },
+    simpleText: {
+        fontSize: 20,
+        color: '#636363',
+        marginBottom: 5,
+        marginTop: 5,
+        flex: 1
     }
 });
 
@@ -746,6 +834,17 @@ const GruposDeCaronasStyles = StyleSheet.create({
     editButton: {
         borderRadius: 50,
         backgroundColor: '#00d7fc',
+        height: 40,
+        width: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        textAlign: 'center',
+        alignContent: 'center',
+        overflow: 'hidden'
+    },
+    infosButton: {
+        borderRadius: 50,
+        backgroundColor: '#02c6f2',
         height: 40,
         width: 40,
         justifyContent: 'center',

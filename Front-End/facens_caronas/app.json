@@ -2,6 +2,11 @@
   "expo": {
     "name": "facens_caronas",
     "slug": "facens_caronas",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "33220c9b-7783-4867-a58b-3ef18fc92c33"
+      }
+    }
   }
 }

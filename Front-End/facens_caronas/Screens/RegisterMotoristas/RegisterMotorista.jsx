@@ -2,9 +2,8 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import React, {useState} from "react";
 import { View, Text, Image, StyleSheet, TextInput,  TouchableOpacity} from "react-native";
 import { auth } from "../../Services/firebaseConfig";
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from "../../Services/firebaseConfig";
-import back_ip from '../../back_ip'
+import back_link from "../../back_link";
+import axios from "axios";
 
 export const RegisterMotorista = () => {
 
@@ -62,8 +61,10 @@ export const RegisterMotorista = () => {
       if (uuid == undefined) {
         return
       }
-      const response = await axios.post(
-        "http://" + back_ip + ":8000/api/usuariomotorista/novo/",
+      console.log(back_link +
+        "usuariomotorista/novo/")
+      const response = await axios.post(back_link +
+        "usuariomotorista/novo/",
         {
             nome: String(nome),
             telefone: String(telefone),
@@ -93,22 +94,13 @@ export const RegisterMotorista = () => {
     if (checkPassword() == 1) {
       return
     }
-
     createUserWithEmailAndPassword(auth, email, senha)
       .then((userCredential) => {
         const user = userCredential.user;
         handleCreateUser(uuid=user.uid);
         alert('Usuário cadastrado com sucesso!');
 
-        // addDoc(collection(db, 'users_motoristas'), {
-        //   ra: RA,
-        //   email: email,
-        //   user_id: userCredential.user.uid,
-        //   nome: nome,
-        //   telefone: telefone,
-        //   cnh: CNH
-        // })
-
+   
       })
       .catch((error) => {
         const errorCode = error.code;

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-
+from urllib.parse import quote_plus
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -59,7 +59,12 @@ ROOT_URLCONF = 'project.urls'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-
+# REST_FRAMEWORK = {
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.AllowAny',
+#     ],
+#     # Outras configurações do DRF
+# }
 
 TEMPLATES = [
     {
@@ -83,11 +88,18 @@ ALLOWED_HOSTS = ['*']
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+username = quote_plus('jlfaguiar')
+password = quote_plus('Mong0F@CENSc4ronas!')
+host = 'facen-caronas-db.mongocluster.cosmos.azure.com'
+uri = f'mongodb+srv://{username}:{password}@{host}/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
+
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': 'main-djongo-db',
-
+        'CLIENT': {
+            'host': uri,
+        }
     }
 }
 
