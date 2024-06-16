@@ -5,6 +5,7 @@ import { Image } from "react-native";
 import { Caronas } from "../Caronas/Caronas";
 import { StyleSheet } from "react-native";
 import { auth } from "../../Services/firebaseConfig";
+import { MinhasCaronas } from "../MinhasCaronas/MinhasCaronas";
 
 const Tab = createBottomTabNavigator();
 
@@ -29,13 +30,22 @@ export const Main = (props) => {
         <NavigationContainer independent={true}>
             <Tab.Navigator screenOptions={{style: tabNavigationStyles.tabBar}}>
 
-                <Tab.Screen name='minhasCaronasScreen' component={Caronas} options={{
+                <Tab.Screen name='caronasScreen' component={Caronas} options={{
                     tabBarLabel: '',
                     tabBarIcon: () => (
                         <Image source={require('./imgs/MeusVeiculosIcon.png')} style={tabNavigationStyles.icon}/>
                     ),
                     headerShown: false
                 }} />
+
+                <Tab.Screen name='minhasCaronasScreen' component={MinhasCaronas} options={{
+                    tabBarLabel: '',
+                    tabBarIcon: () => (
+                        <Image source={require('./imgs/ticketIcon.png')} style={tabNavigationStyles.icon}/>
+                    ),
+                    headerShown: false
+                }} />
+
 
             </Tab.Navigator>
         </NavigationContainer>

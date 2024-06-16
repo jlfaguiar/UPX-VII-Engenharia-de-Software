@@ -1,6 +1,6 @@
 import json
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.urls import reverse_lazy
 from django.views import generic
 from rest_framework import generics
@@ -9,65 +9,79 @@ from rest_framework.generics import get_object_or_404
 from api.models import UsuarioMotorista, UsuarioPassageiro
 from api.serializers import UsuarioPassageiroSerializer, UsuarioMotoristaSerializer
 
-# SRP: Classes para manipulação de UsuarioMotorista
+# Serviço para manipulação de UsuarioMotorista
+class UsuarioMotoristaService:
+    @staticmethod
+    def criar_motorista(data):
+        return UsuarioMotorista.objects.create(**data)
+
+    @staticmethod
+    def obter_motorista(id_user):
+        return get_object_or_404(UsuarioMotorista, id_user=id_user)
+
+# Serviço para manipulação de UsuarioPassageiro
+class UsuarioPassageiroService:
+    @staticmethod
+    def criar_passageiro(data):
+        return UsuarioPassageiro.objects.create(**data)
+
+    @staticmethod
+    def obter_passageiro(id_user):
+        return get_object_or_404(UsuarioPassageiro, id_user=id_user)
+
+# SRP: Views para UsuarioMotorista
 
 class NewUsuarioMotorista(generic.CreateView):
     model = UsuarioMotorista
     fields = ['nome', 'cnh', 'ra', 'telefone']
-    # SRP: Responsável apenas por criar um novo UsuarioMotorista
 
 class ListUsuarioMotorista(generic.ListView):
     model = UsuarioMotorista
     queryset = UsuarioMotorista.objects.all()
-    # SRP: Responsável apenas por listar UsuarioMotorista
 
 class EditUsuarioMotorista(generic.UpdateView):
     model = UsuarioMotorista
     fields = ['nome', 'cnh', 'ra', 'telefone']
     template_name_suffix = '_update_form'
-    # SRP: Responsável apenas por editar um UsuarioMotorista
 
 class DetailedUsuarioMotorista(generic.DetailView):
     model = UsuarioMotorista
 
     def get_object(self):
         id_user = self.kwargs.get('id_user')
-        return get_object_or_404(UsuarioMotorista, id_user=id_user)
-    # SRP: Responsável apenas por detalhar um UsuarioMotorista
+        return UsuarioMotoristaService.obter_motorista(id_user)
 
 class RemoveUsuarioMotorista(generic.DeleteView):
     model = UsuarioMotorista
     success_url = reverse_lazy('usuario-motorista-lista')
-    # SRP: Responsável apenas por remover um UsuarioMotorista
 
-# SRP: Classes para manipulação de UsuarioPassageiro
+# SRP: Views para UsuarioPassageiro
 
 class NewUsuarioPassageiro(generic.CreateView):
     model = UsuarioPassageiro
     fields = ['nome', 'ra', 'telefone']
-    # SRP: Responsável apenas por criar um novo UsuarioPassageiro
 
 class ListUsuarioPassageiro(generic.ListView):
     model = UsuarioPassageiro
     queryset = UsuarioPassageiro.objects.all()
-    # SRP: Responsável apenas por listar UsuarioPassageiro
 
 class EditUsuarioPassageiro(generic.UpdateView):
     model = UsuarioPassageiro
     fields = ['nome', 'ra', 'telefone']
     template_name_suffix = '_update_form'
-    # SRP: Responsável apenas por editar um UsuarioPassageiro
 
 class DetailedUsuarioPassageiro(generic.DetailView):
     model = UsuarioPassageiro
-    # SRP: Responsável apenas por detalhar um UsuarioPassageiro
+
+    def get_object(self):
+        id_user = self.kwargs.get('id_user')
+        return UsuarioPassageiroService.obter_passageiro(id_user)
 
 class RemoveUsuarioPassageiro(generic.DeleteView):
     model = UsuarioPassageiro
     success_url = reverse_lazy('usuario-passageiro-lista')
-    # SRP: Responsável apenas por remover um UsuarioPassageiro
 
-# SRP: Classe para criação de novos usuários
+# SRP: View para criação de novos usuários
 
 class NewUsuario(generic.CreateView):
     model = User
@@ -85,63 +99,56 @@ class NewUsuario(generic.CreateView):
         except Exception as error:
             return JsonResponse({'message': 'Erro ao criar usuário: {}'.format(str(error))}, status=400)
 
-        return NewUsuarioMotorista.as_view()(request) if is_driver else NewUsuarioPassageiro.as_view()(request)
-    # SRP: Responsável apenas pela criação de um novo usuário e delegação da criação de um UsuarioMotorista ou UsuarioPassageiro
+        user_data = {
+            'nome': d_request['nome'],
+            'ra': d_request['ra'],
+            'telefone': d_request['telefone'],
+            'id_user': user.id
+        }
+
+        if is_driver:
+            UsuarioMotoristaService.criar_motorista(user_data)
+        else:
+            UsuarioPassageiroService.criar_passageiro(user_data)
+
+        return JsonResponse({'message': 'Usuário criado com sucesso'}, status=201)
 
 # OCP: API Views para UsuarioMotorista
 
 class APINewUsuarioMotorista(generics.CreateAPIView):
-    model = UsuarioMotorista
+    queryset = UsuarioMotorista.objects.all()
     serializer_class = UsuarioMotoristaSerializer
-    # OCP: Aberto para extensão, fechado para modificação. Adiciona um novo UsuarioMotorista
 
 class APIListUsuarioMotorista(generics.ListAPIView):
-    model = UsuarioMotorista
-    serializer_class = UsuarioMotoristaSerializer
     queryset = UsuarioMotorista.objects.all()
-    # OCP: Aberto para extensão, fechado para modificação. Lista UsuarioMotorista
+    serializer_class = UsuarioMotoristaSerializer
 
 class APIEditUsuarioMotorista(generics.UpdateAPIView):
-    model = UsuarioMotorista
+    queryset = UsuarioMotorista.objects.all()
     serializer_class = UsuarioMotoristaSerializer
-    # OCP: Aberto para extensão, fechado para modificação. Edita um UsuarioMotorista
 
 class APIDetailedUsuarioMotorista(generics.RetrieveAPIView):
-    model = UsuarioMotorista
+    queryset = UsuarioMotorista.objects.all()
     serializer_class = UsuarioMotoristaSerializer
 
     def get_object(self):
         id_user = self.kwargs.get('id_user')
-        return get_object_or_404(UsuarioMotorista, id_user=id_user)
-    # OCP: Aberto para extensão, fechado para modificação. Detalha um UsuarioMotorista
+        return UsuarioMotoristaService.obter_motorista(id_user)
 
 class APIRemoveUsuarioMotorista(generics.DestroyAPIView):
-    model = UsuarioMotorista
+    queryset = UsuarioMotorista.objects.all()
     serializer_class = UsuarioMotoristaSerializer
     success_url = reverse_lazy('usuario-motorista-lista')
-    # OCP: Aberto para extensão, fechado para modificação. Remove um UsuarioMotorista
 
 # OCP: API Views para UsuarioPassageiro
 
 class APINewUsuarioPassageiro(generics.CreateAPIView):
-    model = UsuarioPassageiro
-    serializer_class = UsuarioPassageiroSerializer
-    # OCP: Aberto para extensão, fechado para modificação. Adiciona um novo UsuarioPassageiro
-
-class APIListUsuarioPassageiro(generics.ListAPIView):
-    model = UsuarioPassageiro
     queryset = UsuarioPassageiro.objects.all()
     serializer_class = UsuarioPassageiroSerializer
-    # OCP: Aberto para extensão, fechado para modificação. Lista UsuarioPassageiro
 
-class APIDetailedUsuarioPassageiro(generics.RetrieveAPIView):
-    model = UsuarioPassageiro
+class APIListUsuarioPassageiro(generics.ListAPIView):
+    queryset = UsuarioPassageiro.objects.all()
     serializer_class = UsuarioPassageiroSerializer
-
-    def get_object(self):
-        id_user = self.kwargs.get('id_user')
-        return get_object_or_404(UsuarioPassageiro, id_user=id_user)
-    # OCP: Aberto para extensão, fechado para modificação. Detalha um UsuarioPassageiro
 
 class APIEditUsuarioPassageiro(generics.UpdateAPIView):
     queryset = UsuarioPassageiro.objects.all()
@@ -154,7 +161,6 @@ class APIEditUsuarioPassageiro(generics.UpdateAPIView):
         instance = self.get_object()
         data = request.data.copy()
 
-        # Remove 'id_user' field from data if present to prevent editing it
         if 'id_user' in data:
             del data['id_user']
 
@@ -165,11 +171,18 @@ class APIEditUsuarioPassageiro(generics.UpdateAPIView):
         self.perform_update(serializer)
 
         return Response(serializer.data)
-    # OCP: Aberto para extensão, fechado para modificação. Edita um UsuarioPassageiro
+
+class APIDetailedUsuarioPassageiro(generics.RetrieveAPIView):
+    queryset = UsuarioPassageiro.objects.all()
+    serializer_class = UsuarioPassageiroSerializer
+
+    def get_object(self):
+        id_user = self.kwargs.get('id_user')
+        return UsuarioPassageiroService.obter_passageiro(id_user)
 
 class APIRemoveUsuarioPassageiro(generics.DestroyAPIView):
     queryset = UsuarioPassageiro.objects.all()
-    model = UsuarioPassageiro
+    serializer_class = UsuarioPassageiroSerializer
     lookup_field = 'id_user'
     success_url = reverse_lazy('usuario-passageiro-lista')
 
@@ -177,4 +190,3 @@ class APIRemoveUsuarioPassageiro(generics.DestroyAPIView):
         instance = self.get_object()
         self.perform_destroy(instance)
         return JsonResponse({'message': 'Usuário passageiro removido com sucesso.'}, status=204)
-    # OCP: Aberto para extensão, fechado para modificação. Remove um UsuarioPassageiro
