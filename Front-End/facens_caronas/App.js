@@ -5,8 +5,9 @@ import { RegisterMotorista } from './Screens/RegisterMotoristas/RegisterMotorist
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Main } from './Screens/Main/Main';
-import { auth } from './Services/firebaseConfig';
+// import { auth } from './Services/firebaseConfig';
 import { useEffect, useState } from 'react';
+import { auth } from './Services/firebaseConfig';
 
 const Stack = createNativeStackNavigator();
 
